@@ -20,4 +20,6 @@ ExprNode* parseExpression(const QString& exprStr,
                           int lineNumber,
                           QSet<Error>& errors);
 
+DependencyType compareIndices(ExprNode* node1, ExprNode* node2);
+
 #endif // FUNCTIONS_H

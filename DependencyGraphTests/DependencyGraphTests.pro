@@ -15,7 +15,8 @@ SOURCES += \
     $$PWD/../GraphDependencies/exprnode.cpp \
     $$PWD/../GraphDependencies/error.cpp \
     $$PWD/../GraphDependencies/action.cpp \
-    $$PWD/../GraphDependencies/dependencyedge.cpp
+    $$PWD/../GraphDependencies/dependencyedge.cpp \
+    TEST_CompareIndices.cpp
 
 # Заголовки основного проекта
 HEADERS += \

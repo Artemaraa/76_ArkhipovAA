@@ -9,3 +9,9 @@ ExprNode* parseExpression(const QString& exprStr,
 {
     return nullptr;
 }
+
+
+DependencyType compareIndices(ExprNode* node1, ExprNode* node2)
+{
+    return NoDependency;
+}
