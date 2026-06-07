@@ -1,0 +1,7 @@
+build/
+*.user
+*.o
+*.stash
+.qtc_clangd/
+Makefile*
+compile_commands.json
