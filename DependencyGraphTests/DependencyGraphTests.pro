@@ -28,7 +28,11 @@ HEADERS += \
     $$PWD/../GraphDependencies/error.h \
     $$PWD/../GraphDependencies/action.h \
     $$PWD/../GraphDependencies/dependencyedge.h \
-    $$PWD/../GraphDependencies/dependencyedge.h
+    $$PWD/../GraphDependencies/dependencyedge.h \
+    TEST_CompareIndices.h \
+    TEST_DetermineDependency.h \
+    TEST_ParseActions.h \
+    TEST_ParseExpression.h
 
 # Тестовые файлы
 SOURCES += \

@@ -1,34 +1,7 @@
-#include <QtTest>
+#include "TEST_ParseExpression.h"
 #include "functions.h"
 #include "exprnode.h"
 
-class TEST_ParseExpression : public QObject
-{
-    Q_OBJECT
-
-public:
-    TEST_ParseExpression() {}
-    ~TEST_ParseExpression() {}
-
-private slots:
-    void TestOperandVariable();
-    void TestOperandNumber();
-    void TestOperandNegativeNumber();
-    void TestBinaryPlus();
-    void TestBinaryMultiply();
-    void TestUnaryIncrement();
-    void TestUnaryDecrement();
-    void TestArrayAccess();
-    void TestMultidimensionalArray();
-    void TestNotEnoughOperandsPlus();
-    void TestNotEnoughOperandsIncrement();
-    void TestExtraOperands();
-    void TestArrayInExpression();
-    void TestIncrementArrayElement();
-    void TestComplexExpression();
-    void TestComplexWithErrors();
-    void TestComplexIncrementDecrement();
-};
 
 // ============================================================
 // Тест 1: Операнд - переменная
@@ -438,5 +411,3 @@ void TEST_ParseExpression::TestComplexIncrementDecrement()
         delete root;
     }
 }
-
-#include "TEST_ParseExpression.moc"

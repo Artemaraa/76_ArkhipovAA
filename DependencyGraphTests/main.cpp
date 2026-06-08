@@ -1,8 +1,8 @@
 #include <QtTest>
-#include "TEST_ParseExpression.cpp"
-#include "TEST_CompareIndices.cpp"
-#include "TEST_DetermineDependency.cpp"
-#include "TEST_ParseActions.cpp"
+#include "TEST_ParseExpression.h"
+#include "TEST_CompareIndices.h"
+#include "TEST_DetermineDependency.h"
+#include "TEST_ParseActions.h"
 
 int main(int argc, char *argv[])
 {

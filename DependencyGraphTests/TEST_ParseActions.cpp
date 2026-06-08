@@ -1,40 +1,6 @@
-#include <QtTest>
+#include "TEST_ParseActions.h"
 #include "functions.h"
 #include "action.h"
-
-class TEST_ParseActions : public QObject
-{
-    Q_OBJECT
-
-public:
-    TEST_ParseActions() {}
-    ~TEST_ParseActions() {}
-
-private slots:
-    void TestSimpleAssignment();           // Тест 1
-    void TestWithArray();                  // Тест 2
-    void TestWithIncrement();              // Тест 3
-    void TestEmptyLeftPart();              // Тест 4
-    void TestEmptyRightPart();             // Тест 5
-    void TestNoEqualSign();                // Тест 6
-    void TestMultipleLines();              // Тест 7
-    void TestEmptyLines();                 // Тест 8
-    void TestNegativeNumber();             // Тест 9
-    void TestBinaryMinus();                // Тест 10
-    void TestBinaryDivide();               // Тест 11
-    void TestUnaryDecrement();             // Тест 12
-    void TestMultidimensionalLeft();       // Тест 13
-    void TestMultidimensionalRight();      // Тест 14
-    void TestComplexExpression();          // Тест 15
-    void TestInvalidVariableName();        // Тест 16
-    void TestNumberOutOfRange();           // Тест 17
-    void TestUnsupportedOperator();        // Тест 18
-    void TestNotEnoughOperands();          // Тест 19
-    void TestExtraOperands();              // Тест 20
-    void TestComprehensive();              // Тест 21
-    void TestComprehensiveWithErrors();    // Тест 22
-    void TestBoundaryValues();             // Тест 23
-};
 
 
 // ============================================================
@@ -595,4 +561,3 @@ void TEST_ParseActions::TestBoundaryValues()
     qDeleteAll(actions);
 }
 
-#include "TEST_ParseActions.moc"

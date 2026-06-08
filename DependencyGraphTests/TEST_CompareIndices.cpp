@@ -1,47 +1,6 @@
-#include <QtTest>
+#include "TEST_CompareIndices.h"
 #include "functions.h"
 #include "exprnode.h"
-
-class TEST_CompareIndices : public QObject
-{
-    Q_OBJECT
-
-public:
-    TEST_CompareIndices() {}
-    ~TEST_CompareIndices() {}
-
-private slots:
-    // Базовые тесты (1-6)
-    void TestBothNull();                    // Тест 1
-    void TestEqualNumbers();                // Тест 2
-    void TestDifferentNumbers();            // Тест 3
-    void TestEqualVariables();              // Тест 4
-    void TestDifferentVariables();          // Тест 5
-    void TestConstantAndVariable();         // Тест 6
-
-    // Одномерные массивы (7-9)
-    void TestEqual1dArray();                // Тест 7
-    void TestDifferentConstants1d();        // Тест 8
-    void TestConstantAndVariable1d();       // Тест 9
-
-    // Двумерные массивы (10-14)
-    void TestEqual2dArray();                // Тест 10
-    void TestDifferentFirstIndex2d();       // Тест 11
-    void TestDifferentSecondIndex2d();      // Тест 12
-    void TestVariableFirstIndex2d();        // Тест 13
-    void TestVariableSecondIndex2d();       // Тест 14
-
-    // Null и другие типы (15-17)
-    void TestNullAndVar();                  // Тест 15
-    void TestNullAndNumber();               // Тест 16
-    void TestNullAndArray();                // Тест 17
-
-    // Глубокие массивы (18-20)
-    void TestDeep5dEqual();                 // Тест 18
-    void TestDeep5dVariableIndex();         // Тест 19
-    void TestDeep5dDifferentConstant();     // Тест 20
-};
-
 
 // ============================================================
 // Тест 1: Оба пустые узла
@@ -549,4 +508,3 @@ void TEST_CompareIndices::TestDeep5dDifferentConstant()
     delete arr2;
 }
 
-#include "TEST_CompareIndices.moc"
