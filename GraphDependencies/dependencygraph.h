@@ -2,11 +2,15 @@
 #define DEPENDENCYGRAPH_H
 
 #include <QMap>
+#include <QList>
+#include <QSet>
 #include <QString>
 
 #include "exprnode.h"
 #include "action.h"
 #include "dependencyedge.h"
+#include "error.h"
+
 class DependencyGraph
 {
 public:
@@ -16,6 +20,17 @@ public:
     DependencyType determineDependency(ExprNode* varNode,
                                        const QMap<QString, Action*>& varTable,
                                        Action*& dependencyAction);
+
+    void applyAction(Action* currentAction,
+                     ExprNode* targetRoot,
+                     const QList<ExprNode*>& sourceVariables,
+                     const QList<ExprNode*>& modifiedVariables,
+                     QMap<QString, Action*>& varTable,
+                     QSet<Error>& errors);
+
+    QList<Action*> getIncoming(Action* action) const;
+
+    QString toDOT() const;
 };
 
 #endif // DEPENDENCYGRAPH_H

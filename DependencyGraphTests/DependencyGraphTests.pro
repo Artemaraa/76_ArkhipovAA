@@ -17,6 +17,7 @@ SOURCES += \
     $$PWD/../GraphDependencies/action.cpp \
     $$PWD/../GraphDependencies/dependencyedge.cpp \
     $$PWD/../GraphDependencies/dependencygraph.cpp \
+    TEST_ApplyAction.cpp \
     TEST_CompareIndices.cpp \
     TEST_DetermineDependency.cpp \
     TEST_ParseActions.cpp
@@ -29,6 +30,7 @@ HEADERS += \
     $$PWD/../GraphDependencies/action.h \
     $$PWD/../GraphDependencies/dependencyedge.h \
     $$PWD/../GraphDependencies/dependencyedge.h \
+    TEST_ApplyAction.h \
     TEST_CompareIndices.h \
     TEST_DetermineDependency.h \
     TEST_ParseActions.h \
