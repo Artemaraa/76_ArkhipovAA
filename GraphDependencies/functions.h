@@ -4,6 +4,7 @@
 #include <QString>
 #include <QList>
 #include <QSet>
+#include <QStringList>
 
 #include "exprnode.h"
 #include "error.h"
@@ -21,5 +22,9 @@ ExprNode* parseExpression(const QString& exprStr,
                           QSet<Error>& errors);
 
 DependencyType compareIndices(ExprNode* node1, ExprNode* node2);
+
+void parseActions(const QStringList& fileContent,
+                  QList<Action*>& actions,
+                  QSet<Error>& errors);
 
 #endif // FUNCTIONS_H

@@ -18,7 +18,8 @@ SOURCES += \
     $$PWD/../GraphDependencies/dependencyedge.cpp \
     $$PWD/../GraphDependencies/dependencygraph.cpp \
     TEST_CompareIndices.cpp \
-    TEST_DetermineDependency.cpp
+    TEST_DetermineDependency.cpp \
+    TEST_ParseActions.cpp
 
 # Заголовки основного проекта
 HEADERS += \

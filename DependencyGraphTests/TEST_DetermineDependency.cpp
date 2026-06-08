@@ -69,7 +69,7 @@ void TEST_DetermineDependency::TestScalarDirect()
     QVERIFY(dependencyAction == action1);
 
     delete varNode;
-    delete action1;  // деструктор сам удалит targetRoot
+    delete action1;
 }
 
 // ============================================================
@@ -102,7 +102,7 @@ void TEST_DetermineDependency::TestArrayDifferentConstants()
     QVERIFY(dependencyAction == action1);
 
     delete varNode;
-    delete action1;  // деструктор сам удалит всё дерево targetRoot
+    delete action1;
 }
 
 // ============================================================
@@ -543,8 +543,8 @@ void TEST_DetermineDependency::TestComplexA2iA2j()
     QCOMPARE((int)result, (int)General);   // i и j - разные переменные
     QVERIFY(dependencyAction == action1);
 
-    delete varNode;   // дерево a[2][j] (деструктор удалит потомков рекурсивно)
-    delete action1;   // деструктор Action удалит targetRoot = a[2][i]
+    delete varNode;
+    delete action1;
 }
 
 #include "TEST_DetermineDependency.moc"
