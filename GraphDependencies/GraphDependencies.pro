@@ -9,6 +9,7 @@ CONFIG += c++17 cmdline
 SOURCES += \
         action.cpp \
         dependencyedge.cpp \
+        dependencygraph.cpp \
         error.cpp \
         exprnode.cpp \
         functions.cpp \
@@ -22,6 +23,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     action.h \
     dependencyedge.h \
+    dependencygraph.h \
     error.h \
     exprnode.h \
     functions.h
