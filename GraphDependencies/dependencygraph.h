@@ -30,6 +30,10 @@ public:
 
     QList<Action*> getIncoming(Action* action) const;
 
+    void buildGraph(const QList<Action*>& actionsList,
+                    QMap<QString, Action*>& varTable,
+                    QSet<Error>& errors);
+
     QString toDOT() const;
 };
 

@@ -38,6 +38,15 @@ QList<Action*> DependencyGraph::getIncoming(Action* action) const
     return QList<Action*>();
 }
 
+// Заглушка: граф не строится
+void DependencyGraph::buildGraph(const QList<Action*>& actionsList,
+                                 QMap<QString, Action*>& varTable,
+                                 QSet<Error>& errors)
+{
+    Q_UNUSED(actionsList);
+    Q_UNUSED(varTable);
+    Q_UNUSED(errors);
+}
 // Заглушка пустой граф
 QString DependencyGraph::toDOT() const
 {
