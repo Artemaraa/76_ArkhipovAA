@@ -242,34 +242,90 @@ int getArrayDimension(ExprNode* node)
     return dimension;
 }
 
-void handleBinaryOp(const QString& token, QStack<ExprNode*>& stack,
-                    int lineNumber, int tokenIndex, QSet<Error>& errors)
+// Обработчик бинарного оператора
+void handleBinaryOp(const QString& token, QStack<ExprNode*>& stack, int lineNumber, int tokenIndex, QSet<Error>& errors)
 {
-    Q_UNUSED(token);
-    Q_UNUSED(stack);
-    Q_UNUSED(lineNumber);
-    Q_UNUSED(tokenIndex);
-    Q_UNUSED(errors);
+    // Если в стеке меньше двух узлов, добавить ошибку
+    if (stack.size() < 2) {
+        errors.insert(Error(NotEnoughOperands, lineNumber, tokenIndex, token));
+        // Положить заглушку и выйти
+        stack.push(makeStubNode());
+        return;
+    }
+    // Снять с вершины правый операнд
+    ExprNode* right = stack.pop();
+    // Снять с вершины левый операнд
+    ExprNode* left  = stack.pop();
+    // Определить операцию
+    TokenType opType = Plus;
+    if (token == "-") opType = Minus;
+    else if (token == "*") opType = Multiply;
+    else if (token == "/") opType = Divide;
+    // Создать узел операции
+    ExprNode* opNode = new ExprNode(opType);
+    // Поместить левый и правый операнды
+    opNode->leftOperand  = left;
+    opNode->rightOperand = right;
+    // Вернуть в стек
+    stack.push(opNode);
 }
 
-void handleUnaryOp(const QString& token, QStack<ExprNode*>& stack,
-                   int lineNumber, int tokenIndex, QSet<Error>& errors)
+// Обработчик унарного оператора
+void handleUnaryOp(const QString& token, QStack<ExprNode*>& stack, int lineNumber, int tokenIndex, QSet<Error>& errors)
 {
-    Q_UNUSED(token);
-    Q_UNUSED(stack);
-    Q_UNUSED(lineNumber);
-    Q_UNUSED(tokenIndex);
-    Q_UNUSED(errors);
+    // Если стек пуст, добавить ошибку
+    if (stack.size() < 1) {
+        errors.insert(Error(NotEnoughOperands, lineNumber, tokenIndex, token));
+        // Положить заглушку и выйти
+        stack.push(makeStubNode());
+        return;
+    }
+    // Снять операнд с вершины стека
+    ExprNode* operand = stack.pop();
+    // Если операнд = не переменная, добавить ошибку
+    if (operand->type != Var) {
+        errors.insert(Error(UnaryOperandNotVariable, lineNumber, tokenIndex, token));
+    }
+    // Определить операцию
+    TokenType opType = (token == "++") ? Increment : Decrement;
+    // Создать узел
+    ExprNode* opNode = new ExprNode(opType);
+    // Поместить операнд левым потомком
+    opNode->leftOperand = operand;
+    // Положить в стек
+    stack.push(opNode);
 }
 
-void handleArrayAccess(const QString& token, QStack<ExprNode*>& stack,
-                       int lineNumber, int tokenIndex, QSet<Error>& errors)
+// Обработчик доступа к элементу массива
+void handleArrayAccess(const QString& token, QStack<ExprNode*>& stack, int lineNumber, int tokenIndex, QSet<Error>& errors)
 {
-    Q_UNUSED(token);
-    Q_UNUSED(stack);
-    Q_UNUSED(lineNumber);
-    Q_UNUSED(tokenIndex);
-    Q_UNUSED(errors);
+    // Если в стеке меньше двух узлов
+    if (stack.size() < 2) {
+        // Добавить ошибку
+        errors.insert(Error(NotEnoughOperands, lineNumber, tokenIndex, token));
+        // Положить две заглушки и выйти
+        stack.push(makeStubNode());
+        stack.push(makeStubNode());
+        return;
+    }
+
+    // Снять с вершины индекс
+    ExprNode* index = stack.pop();
+    // Снять с вершины массив
+    ExprNode* array = stack.pop();
+    // Создать узел доступа к массиву
+    ExprNode* arrNode = new ExprNode(ArrayAccess);
+    // левый потомок = массив
+    arrNode->leftOperand  = array;
+    // правый = индекс
+    arrNode->rightOperand = index;
+    // Положить в стек
+    stack.push(arrNode);
+
+    // Если глубина вложенности > 5,добавить ошибку
+    if (getArrayDimension(arrNode) > MAX_INDEX_DEPTH) {
+        errors.insert(Error(NestingDepthExceeded, lineNumber, tokenIndex, getArrayName(arrNode)));
+    }
 }
 
 void collectSources(ExprNode* node, QList<ExprNode*>& sources)

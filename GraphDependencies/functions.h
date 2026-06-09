@@ -87,14 +87,39 @@ QString getArrayName(ExprNode* node);
  */
 int getArrayDimension(ExprNode* node);
 
+/**
+ * @brief Обрабатывает бинарный оператор при разборе
+ * @param[in]     token       текст оператора
+ * @param[in,out] stack       стек узлов
+ * @param[in]     lineNumber  номер строки
+ * @param[in]     tokenIndex  номер токена
+ * @param[in,out] errors      множество ошибок
+ */
 void handleBinaryOp(const QString& token, QStack<ExprNode*>& stack,
                     int lineNumber, int tokenIndex, QSet<Error>& errors);
 
+/**
+ * @brief Обрабатывает унарный оператор при разборе
+ * @param[in]     token       текст оператора
+ * @param[in,out] stack       стек узлов
+ * @param[in]     lineNumber  номер строки
+ * @param[in]     tokenIndex  номер токена
+ * @param[in,out] errors      множество ошибок
+ */
 void handleUnaryOp(const QString& token, QStack<ExprNode*>& stack,
                    int lineNumber, int tokenIndex, QSet<Error>& errors);
 
+/**
+ * @brief Обрабатывает доступ к элементу массива при разборе
+ * @param[in]     token       текст оператора
+ * @param[in,out] stack       стек узлов
+ * @param[in]     lineNumber  номер строки
+ * @param[in]     tokenIndex  номер токена
+ * @param[in,out] errors      множество ошибок
+ */
 void handleArrayAccess(const QString& token, QStack<ExprNode*>& stack,
                        int lineNumber, int tokenIndex, QSet<Error>& errors);
+
 
 void collectSources(ExprNode* node, QList<ExprNode*>& sources);
 
