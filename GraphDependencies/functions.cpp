@@ -121,18 +121,123 @@ ExprNode* parseExpression(const QString& exprStr,
     return result;
 }
 
-void parseSingleToken(const QString& token, QStack<ExprNode*>& stack,
-                      int lineNumber, int tokenIndex,
+// узл-заглушка
+ExprNode* makeStubNode()
+{
+    // Создать и вернуть узел типа Number со значением 0
+    return new ExprNode(Number, "0");
+}
+
+// Разбор одного токена
+void parseSingleToken(const QString& token,
+                      QStack<ExprNode*>& stack,
+                      int lineNumber,
+                      int tokenIndex,
                       const QRegularExpression& numRegex,
                       const QRegularExpression& varRegex,
                       QSet<Error>& errors)
+{
+    // Если токен - бинарный оператор, передать в обработчик бинарного оператора
+    if (token == "+" || token == "-" || token == "*" || token == "/") {
+        handleBinaryOp(token, stack, lineNumber, tokenIndex, errors);
+    }
+    // Иначе если токен - унарный оператор, передать в обработчик унарного оператора
+    else if (token == "++" || token == "--") {
+        handleUnaryOp(token, stack, lineNumber, tokenIndex, errors);
+    }
+    // Иначе если токен - доступ к элементу массива, передать в обработчик доступа к массиву
+    else if (token == "[]") {
+        handleArrayAccess(token, stack, lineNumber, tokenIndex, errors);
+    }
+    // Иначе если токен подходит под шаблон целого числа
+    else if (numRegex.match(token).hasMatch()) {
+        // Проверить, помещается ли число в диапазон
+        bool ok = false;
+        token.toInt(&ok);
+        if (!ok) {
+            // Если не помещается, добавить ошибку и положить фиктивный узел
+            errors.insert(Error(NumberOutOfRange, lineNumber, tokenIndex, token));
+            stack.push(makeStubNode());
+        } else {
+            // Иначе создать узел-число и положить в стек
+            stack.push(new ExprNode(Number, token));
+        }
+    }
+    // Иначе если токен подходит под шаблон имени переменной
+    else if (varRegex.match(token).hasMatch()) {
+        // Если имя длиннее 255 символов, добавить ошибку и положить фиктивный узел
+        if (token.length() > MAX_VAR_LEN) {
+            errors.insert(Error(VariableNameTooLong, lineNumber, tokenIndex, token));
+            stack.push(makeStubNode());
+        } else {
+            // Иначе создать узел-переменную и положить в стек
+            stack.push(new ExprNode(Var, token));
+        }
+    }
+    // Иначе токен некорректен, определить точный вид ошибки
+    else {
+        if (!token.isEmpty()) {
+            const QChar firstChar = token[0];
+            // Определить, похож ли токен на число
+            const bool looksNumeric = firstChar.isDigit() ||
+                                      (token.size() > 1 && firstChar == '-' && token[1].isDigit());
+
+            if (looksNumeric) {
+                // Если токен состоит только из цифр, точки и минуса, то это неферный формат числа
+                const QString numericChars = "0123456789.-";
+                bool onlyNumericChars = true;
+                for (const QChar c : token) {
+                    if (!numericChars.contains(c)) {
+                        onlyNumericChars = false;
+                        break;
+                    }
+                }
+                if (onlyNumericChars) {
+                    // Похоже на число, но не целое
+                    errors.insert(Error(InvalidNumberFormat, lineNumber, tokenIndex, token));
+                } else {
+                    // Имя с недопустимыми символами
+                    errors.insert(Error(InvalidVariableName, lineNumber, tokenIndex, token));
+                }
+            } else {
+                // Иначе это неизвестный оператор/символ
+                errors.insert(Error(UnsupportedOperator, lineNumber, tokenIndex, token));
+            }
+        } else {
+            errors.insert(Error(UnsupportedOperator, lineNumber, tokenIndex, token));
+        }
+        // Положить фиктивный узел
+        stack.push(makeStubNode());
+    }
+}
+
+void handleBinaryOp(const QString& token, QStack<ExprNode*>& stack,
+                    int lineNumber, int tokenIndex, QSet<Error>& errors)
 {
     Q_UNUSED(token);
     Q_UNUSED(stack);
     Q_UNUSED(lineNumber);
     Q_UNUSED(tokenIndex);
-    Q_UNUSED(numRegex);
-    Q_UNUSED(varRegex);
+    Q_UNUSED(errors);
+}
+
+void handleUnaryOp(const QString& token, QStack<ExprNode*>& stack,
+                   int lineNumber, int tokenIndex, QSet<Error>& errors)
+{
+    Q_UNUSED(token);
+    Q_UNUSED(stack);
+    Q_UNUSED(lineNumber);
+    Q_UNUSED(tokenIndex);
+    Q_UNUSED(errors);
+}
+
+void handleArrayAccess(const QString& token, QStack<ExprNode*>& stack,
+                       int lineNumber, int tokenIndex, QSet<Error>& errors)
+{
+    Q_UNUSED(token);
+    Q_UNUSED(stack);
+    Q_UNUSED(lineNumber);
+    Q_UNUSED(tokenIndex);
     Q_UNUSED(errors);
 }
 

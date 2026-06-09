@@ -16,6 +16,13 @@ const int MAX_ACTIONS = 10000;
 const int MAX_VAR_LEN = 255;
 const int MAX_INDEX_DEPTH = 5;
 
+/**
+ * @brief Создаёт фиктивный узел.
+ * Используется, когда оператору не хватило операндов, чтобы не прерывать разбор
+ * @return новый узел Number("0")
+ */
+ExprNode* makeStubNode();
+
 
 /**
  * @brief Разбирает все строки трассы в список действий.
@@ -50,12 +57,30 @@ ExprNode* parseExpression(const QString& exprStr,
                           int lineNumber,
                           QSet<Error>& errors);
 
-
+/**
+ * @brief Разбирает один токен и направляет его в нужный обработчик.
+ * @param[in]     token       текст токена
+ * @param[in,out] stack       стек узлов
+ * @param[in]     lineNumber  номер строки
+ * @param[in]     tokenIndex  номер токена
+ * @param[in]     numRegex    шаблон целого числа
+ * @param[in]     varRegex    шаблон имени переменной
+ * @param[in,out] errors      множество ошибок
+ */
 void parseSingleToken(const QString& token, QStack<ExprNode*>& stack,
                       int lineNumber, int tokenIndex,
                       const QRegularExpression& numRegex,
                       const QRegularExpression& varRegex,
                       QSet<Error>& errors);
+
+void handleBinaryOp(const QString& token, QStack<ExprNode*>& stack,
+                    int lineNumber, int tokenIndex, QSet<Error>& errors);
+
+void handleUnaryOp(const QString& token, QStack<ExprNode*>& stack,
+                   int lineNumber, int tokenIndex, QSet<Error>& errors);
+
+void handleArrayAccess(const QString& token, QStack<ExprNode*>& stack,
+                       int lineNumber, int tokenIndex, QSet<Error>& errors);
 
 void collectSources(ExprNode* node, QList<ExprNode*>& sources);
 
