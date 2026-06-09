@@ -73,6 +73,20 @@ void parseSingleToken(const QString& token, QStack<ExprNode*>& stack,
                       const QRegularExpression& varRegex,
                       QSet<Error>& errors);
 
+/**
+ * @brief Возвращает имя переменной/массива по корню дерева.
+ * @param[in] node  корень дерева
+ * @return имя без индексов
+ */
+QString getArrayName(ExprNode* node);
+
+/**
+ * @brief Возвращает размерность цели
+ * @param[in] node  корень дерева
+ * @return 0 для скаляра, 1 и более для массива
+ */
+int getArrayDimension(ExprNode* node);
+
 void handleBinaryOp(const QString& token, QStack<ExprNode*>& stack,
                     int lineNumber, int tokenIndex, QSet<Error>& errors);
 

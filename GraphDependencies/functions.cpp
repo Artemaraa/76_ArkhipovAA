@@ -211,6 +211,37 @@ void parseSingleToken(const QString& token,
     }
 }
 
+// Имя переменной/массива
+QString getArrayName(ExprNode* node)
+{
+    QString name;
+    // Если узел пуст, вернуть пустую строку
+    if (node) {
+        if (node->type == Var) {
+            // Если узел = переменная, вернуть её имя
+            name = node->value;
+        } else if (node->type == ArrayAccess) {
+            // Если узел + доступ к массиву, рекурсивно взять имя у левого операнда
+            name = getArrayName(node->leftOperand);
+        }
+    }
+    // Вернуть имя
+    return name;
+}
+
+// Размерность массива
+int getArrayDimension(ExprNode* node)
+{
+    // Если узел пуст или не массив,то 0
+    int dimension = 0;
+    if (node && node->type == ArrayAccess) {
+        // Каждый уровень [] добавляет 1
+        dimension = 1 + getArrayDimension(node->leftOperand);
+    }
+    // Вернуть размерность
+    return dimension;
+}
+
 void handleBinaryOp(const QString& token, QStack<ExprNode*>& stack,
                     int lineNumber, int tokenIndex, QSet<Error>& errors)
 {
