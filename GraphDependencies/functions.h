@@ -25,6 +25,13 @@ const int MAX_INDEX_DEPTH = 5;
  */
 void parseActions(const QStringList& fileContent, QList<Action*>& actions, QSet<Error>& errors);
 
+/**
+ * @brief Разбирает одну строку трассы в действие.
+ * @param[in]     trimmedLine  строка без крайних пробелов
+ * @param[in]     lineNumber   номер строки
+ * @param[in,out] actions      список действий
+ * @param[in,out] errors       множество ошибок
+ */
 void parseSingleLine(const QString& trimmedLine, int lineNumber,
                      QList<Action*>& actions, QSet<Error>& errors);
 
