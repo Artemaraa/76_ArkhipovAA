@@ -35,12 +35,31 @@ void parseActions(const QStringList& fileContent, QList<Action*>& actions, QSet<
 void parseSingleLine(const QString& trimmedLine, int lineNumber,
                      QList<Action*>& actions, QSet<Error>& errors);
 
+/**
+ * @brief Строит дерево выражения из постфиксной строки.
+ * @param[in]     exprStr     текст выражения
+ * @param[out]    sources     прочитанные переменные
+ * @param[out]    modified    изменяемые переменные
+ * @param[in]     lineNumber  номер строки
+ * @param[in,out] errors      множество ошибок
+ * @return корень построенного дерева (или nullptr)
+ */
 ExprNode* parseExpression(const QString& exprStr,
                           QList<ExprNode*>& sources,
                           QList<ExprNode*>& modified,
                           int lineNumber,
                           QSet<Error>& errors);
 
+
+void parseSingleToken(const QString& token, QStack<ExprNode*>& stack,
+                      int lineNumber, int tokenIndex,
+                      const QRegularExpression& numRegex,
+                      const QRegularExpression& varRegex,
+                      QSet<Error>& errors);
+
+void collectSources(ExprNode* node, QList<ExprNode*>& sources);
+
+void collectModified(ExprNode* node, QList<ExprNode*>& modified);
 DependencyType compareIndices(ExprNode* node1, ExprNode* node2);
 
 

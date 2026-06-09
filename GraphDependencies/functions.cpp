@@ -75,20 +75,78 @@ void parseSingleLine(const QString& trimmedLine, int lineNum, QList<Action*>& ac
     }
 }
 
+// Построение дерева выражения из постфиксной формы
 ExprNode* parseExpression(const QString& exprStr,
                           QList<ExprNode*>& sources,
                           QList<ExprNode*>& modified,
                           int lineNumber,
                           QSet<Error>& errors)
 {
-    Q_UNUSED(exprStr);
-    Q_UNUSED(lineNumber);
-    Q_UNUSED(sources);
-    Q_UNUSED(errors);
-    Q_UNUSED(modified);
-    return nullptr;
+    // Разбить текст по пробелам
+    const QStringList tokens = exprStr.split(' ', Qt::SkipEmptyParts);
+    // Если токенов нет, вернуть пустой указатель
+    if (tokens.isEmpty()){
+        return nullptr;
+    }
+    // Шаблон целого числа и имени переменной
+    const QRegularExpression numR("^-?\\d+$");
+    const QRegularExpression varR("^[a-zA-Z][a-zA-Z0-9]*$");
+    // Завести пустой стек узлов
+    QStack<ExprNode*> stack;
+    // Каждый токен разобрать
+    for (int i = 0; i < tokens.size(); ++i) {
+        parseSingleToken(tokens[i], stack, lineNumber, i + 1, numR, varR, errors);
+    }
+    // Проверить стек
+    ExprNode* result = nullptr;
+    if (stack.size() == 1) {
+        // Если остался ровно один узел - это корень дерева
+        result = stack.pop();
+    } else {
+        // Если узлов больше одного - добавить ошибку
+        errors.insert(Error(ExtraOperands, lineNumber, 0, ""));
+        // Взять нижний узел как корень
+        result = stack.first();
+        // Остальные деревья освободить
+        for (ExprNode* node : stack) {
+            if (node != result) {
+                delete node;
+            }
+        }
+    }
+    // Собрать прочитанные и изменяемые переменные
+    collectSources(result, sources);
+    collectModified(result, modified);
+    // Вернуть корень дерева
+    return result;
 }
 
+void parseSingleToken(const QString& token, QStack<ExprNode*>& stack,
+                      int lineNumber, int tokenIndex,
+                      const QRegularExpression& numRegex,
+                      const QRegularExpression& varRegex,
+                      QSet<Error>& errors)
+{
+    Q_UNUSED(token);
+    Q_UNUSED(stack);
+    Q_UNUSED(lineNumber);
+    Q_UNUSED(tokenIndex);
+    Q_UNUSED(numRegex);
+    Q_UNUSED(varRegex);
+    Q_UNUSED(errors);
+}
+
+void collectSources(ExprNode* node, QList<ExprNode*>& sources)
+{
+    Q_UNUSED(node);
+    Q_UNUSED(sources);
+}
+
+void collectModified(ExprNode* node, QList<ExprNode*>& modified)
+{
+    Q_UNUSED(node);
+    Q_UNUSED(modified);
+}
 
 DependencyType compareIndices(ExprNode* node1, ExprNode* node2)
 {
