@@ -120,10 +120,27 @@ void handleUnaryOp(const QString& token, QStack<ExprNode*>& stack,
 void handleArrayAccess(const QString& token, QStack<ExprNode*>& stack,
                        int lineNumber, int tokenIndex, QSet<Error>& errors);
 
-
+/**
+ * @brief Собирает прочитанные переменные обходом готового дерева.
+ * @param[in]  node     корень дерева или поддерева
+ * @param[out] sources  список источников
+ */
 void collectSources(ExprNode* node, QList<ExprNode*>& sources);
 
+/**
+ * @brief Собирает переменные-индексы из базы массива.
+ * @param[in]  node     узел базы массива
+ * @param[out] sources  список источников
+ */
+void collectIndexVars(ExprNode* node, QList<ExprNode*>& sources);
+
+/**
+ * @brief Собирает переменные, изменяемые операторами ++/--.
+ * @param[in]  node      корень дерева или поддерева
+ * @param[out] modified  список изменяемых переменных
+ */
 void collectModified(ExprNode* node, QList<ExprNode*>& modified);
+
 DependencyType compareIndices(ExprNode* node1, ExprNode* node2);
 
 

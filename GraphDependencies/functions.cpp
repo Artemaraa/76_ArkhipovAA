@@ -328,17 +328,65 @@ void handleArrayAccess(const QString& token, QStack<ExprNode*>& stack, int lineN
     }
 }
 
-void collectSources(ExprNode* node, QList<ExprNode*>& sources)
+// Сбор переменных-индексов из базы массива
+void collectIndexVars(ExprNode* node, QList<ExprNode*>& sources)
 {
-    Q_UNUSED(node);
-    Q_UNUSED(sources);
+    // Если узел пуст, ничего не делать
+    if (!node) return;
+    // Если узел = доступ к массиву
+    if (node->type == ArrayAccess) {
+        // Спуститься по базе тем же сбором индексов
+        collectIndexVars(node->leftOperand, sources);
+        // Индекс этого уровня собрать обычным сбором источников
+        collectSources(node->rightOperand, sources);
+    }
 }
 
+// Сбор прочитанных переменных
+void collectSources(ExprNode* node, QList<ExprNode*>& sources)
+{
+    // Если узел пуст, выйти
+    if (!node) return;
+
+    switch (node->type) {
+    case Var:
+        // Если узел = переменная, добавить её в список источников
+        sources.append(node);
+        break;
+    case Number:
+        // Если узел = число, ничего не добавлять
+        break;
+    case ArrayAccess:
+        // Если узел = доступ к массиву: добавить сам узел (целый элемент a[2], a[i][j])
+        sources.append(node);
+        // Собрать переменные-индексы из базы массива
+        collectIndexVars(node->leftOperand, sources);
+        // Собрать переменные из индекса текущего измерения
+        collectSources(node->rightOperand, sources);
+        break;
+    default: // + - * / ++ --
+        // Для прочих узлов (операторы) - рекурсивно обойти левого и правого потомка
+        collectSources(node->leftOperand, sources);
+        collectSources(node->rightOperand, sources);
+    }
+}
+
+// Сбор изменяемых переменных
 void collectModified(ExprNode* node, QList<ExprNode*>& modified)
 {
-    Q_UNUSED(node);
-    Q_UNUSED(modified);
+    // Если узел пуст, выйти
+    if (!node) return;
+    // Если узел = инкремент или декремент и его операнд = переменная
+    if ((node->type == Increment || node->type == Decrement) &&
+        node->leftOperand && node->leftOperand->type == Var) {
+        // Добавить её в список изменяемых
+        modified.append(node->leftOperand);
+    }
+    // Рекурсивно обойти оба поддерева
+    collectModified(node->leftOperand, modified);
+    collectModified(node->rightOperand, modified);
 }
+
 
 DependencyType compareIndices(ExprNode* node1, ExprNode* node2)
 {
