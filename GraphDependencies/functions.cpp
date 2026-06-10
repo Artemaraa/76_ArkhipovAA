@@ -387,11 +387,44 @@ void collectModified(ExprNode* node, QList<ExprNode*>& modified)
     collectModified(node->rightOperand, modified);
 }
 
-
+// Сравнение индексов
 DependencyType compareIndices(ExprNode* node1, ExprNode* node2)
 {
-    Q_UNUSED(node1);
-    Q_UNUSED(node2);
-    return NoDependency;
+    DependencyType result;
+
+    if (!node1 && !node2) {
+        // Если оба узла пусты, вернуть Direct
+        result = Direct;
+    } else if (!node1 || !node2) {
+        // Если пуст ровно один, вернуть General
+        result = General;
+    } else if (node1->type != node2->type) {
+        // Если типы узлов различаются, вернуть General
+        result = General;
+    } else if (node1->type == Var) {
+        // Если узлы = переменные: имена равны - Direct, иначе General
+        result = (node1->value == node2->value) ? Direct : General;
+    } else if (node1->type == Number) {
+        // Если узлы = числа: значения равны - Direct, иначе NoDependency
+        result = (node1->value == node2->value) ? Direct : NoDependency;
+    } else if (node1->type == ArrayAccess) {
+        // Если узлы - доступ к массиву: сравнить базы и индексы рекурсивно
+        const DependencyType leftResult  = compareIndices(node1->leftOperand,  node2->leftOperand);
+        const DependencyType rightResult = compareIndices(node1->rightOperand, node2->rightOperand);
+        // Если хотя бы один результат NoDependency - вернуть NoDependency
+        if (leftResult == NoDependency || rightResult == NoDependency) {
+            result = NoDependency;
+            // Иначе если хотя бы один General - вернуть General
+        } else if (leftResult == General || rightResult == General) {
+            result = General;
+            // Иначе - вернуть Direct
+        } else {
+            result = Direct;
+        }
+    } else {
+        result = General;
+    }
+
+    return result;
 }
 

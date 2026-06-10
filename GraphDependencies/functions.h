@@ -141,8 +141,13 @@ void collectIndexVars(ExprNode* node, QList<ExprNode*>& sources);
  */
 void collectModified(ExprNode* node, QList<ExprNode*>& modified);
 
+/**
+ * @brief Сравнивает индексы двух деревьев и определяет тип зависимости.
+ * @param[in] node1  первое дерево
+ * @param[in] node2  второе дерево
+ * @return Direct, General или NoDependency
+ */
 DependencyType compareIndices(ExprNode* node1, ExprNode* node2);
-
 
 
 #endif // FUNCTIONS_H
