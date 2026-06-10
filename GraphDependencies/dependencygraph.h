@@ -69,6 +69,15 @@ public:
      */
     void addEdge(Action* from, Action* to, DependencyType type);
 
+    /**
+     * @brief Проверяет корректность размерности целевой переменной
+     * @param[in]  targetRoot  корень левой части
+     * @param[in]  varName      имя целевой переменной
+     * @param[in]  varTable    таблица переменных
+     * @param[in]  lineNumber  номер строки
+     * @param[out] error      заполняется при несоответствии
+     * @return true - корректно, false - несоответствие
+     */
     bool validateArrayDimension(ExprNode* targetRoot,
                                 const QString& varName,
                                 const QMap<QString, Action*>& varTable,

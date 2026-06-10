@@ -124,18 +124,39 @@ void DependencyGraph::addEdge(Action* from, Action* to, DependencyType type)
     }
 }
 
+// Проверка размерности целевой переменной
 bool DependencyGraph::validateArrayDimension(ExprNode* targetRoot,
                                              const QString& varName,
                                              const QMap<QString, Action*>& varTable,
                                              int lineNumber,
                                              Error& error)
 {
-    Q_UNUSED(targetRoot);
-    Q_UNUSED(varName);
-    Q_UNUSED(varTable);
-    Q_UNUSED(lineNumber);
-    Q_UNUSED(error);
-    return true;
+    // Вычислить размерность текущей цели
+    const int currentDim = getArrayDimension(targetRoot);
+    // Если имя ещё не встречалось в таблице, это первое использование
+    if (!varTable.contains(varName)) {
+        return true;
+    }
+    // Взять последнее действие, изменявшее эту переменную
+    Action* lastAction = varTable[varName];
+    if (lastAction == nullptr || lastAction->targetRoot == nullptr) {
+        return true;
+    }
+    // Вычислить размерность у переменной, которую мы взяли
+    const int savedDim = getArrayDimension(lastAction->targetRoot);
+    // Если размерности совпадают - вернуть успех
+    if (currentDim == savedDim) {
+        return true;
+    }
+    // Если размерности разошлись,заполнить ошибку точным типом
+    if (savedDim == 0 && currentDim > 0) {
+        error = Error(ScalarWithIndex, lineNumber, 0, varName); // был скаляр, стал массив
+    } else if (savedDim > 0 && currentDim == 0) {
+        error = Error(ArrayWithoutIndex, lineNumber, 0, varName); // был массив, стал скаляр
+    } else {
+        error = Error(InvalidArrayDimension, lineNumber, 0, varName); // число измерений разное
+    }
+    return false;
 }
 
 DependencyType DependencyGraph::determineDependency(ExprNode* varNode,
