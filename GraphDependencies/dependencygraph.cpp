@@ -89,16 +89,39 @@ void DependencyGraph::applyAction(Action* currentAction,
     addAction(currentAction);
 }
 
+// Добавление вершины
 void DependencyGraph::addAction(Action* action)
 {
-    Q_UNUSED(action);
+    // если указатель не пуст, добавить действие в список вершин
+    if (action) {
+        actions.append(action);
+    }
 }
 
+// Добавление ребра зависимости
 void DependencyGraph::addEdge(Action* from, Action* to, DependencyType type)
 {
-    Q_UNUSED(from);
-    Q_UNUSED(to);
-    Q_UNUSED(type);
+    // Если любое из действий отсутствует - ничего не делать
+    if (!from || !to) return;
+
+    // Проверить список рёбер на дубликат (зависимость уже имеется)
+    bool exists = false;
+    for (DependencyEdge* edge : edges) {
+        if (edge->from == from && edge->to == to) {
+            exists = true;
+            break;// дубликат найден, прекращаем поиск
+        }
+    }
+    // Если дубликата нет
+    if (!exists) {
+        // Создать ребро
+        DependencyEdge* newEdge = new DependencyEdge(from, to, type);
+        edges.append(newEdge);
+        // Обнавление таблицы навигации
+        // Исходящие (источник -> зависимое) и входящие (зависимое -> источник)
+        outgoing.insert(to, from);
+        incoming.insert(from, to);
+    }
 }
 
 bool DependencyGraph::validateArrayDimension(ExprNode* targetRoot,
@@ -115,7 +138,6 @@ bool DependencyGraph::validateArrayDimension(ExprNode* targetRoot,
     return true;
 }
 
-// Заглушка: связь не найдена, источника нет
 DependencyType DependencyGraph::determineDependency(ExprNode* varNode,
                                                     const QMap<QString, Action*>& varTable,
                                                     Action*& dependencyAction)
@@ -126,14 +148,12 @@ DependencyType DependencyGraph::determineDependency(ExprNode* varNode,
     return NoDependency;
 }
 
-// Заглушка входящих связей нет
 QList<Action*> DependencyGraph::getIncoming(Action* action) const
 {
     Q_UNUSED(action);
     return QList<Action*>();
 }
 
-// Заглушка пустой граф
 QString DependencyGraph::toDOT() const
 {
     return QString();

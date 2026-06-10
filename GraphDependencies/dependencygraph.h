@@ -55,8 +55,18 @@ public:
                      QMap<QString, Action*>& varTable,
                      QSet<Error>& errors);
 
+    /**
+     * @brief Добавляет вершину (действие) в граф
+     * @param[in] action  действие
+     */
     void addAction(Action* action);
 
+    /**
+     * @brief Добавляет ребро зависимости
+     * @param[in] from  зависимое действие
+     * @param[in] to    действие-источник
+     * @param[in] type  тип зависимости
+     */
     void addEdge(Action* from, Action* to, DependencyType type);
 
     bool validateArrayDimension(ExprNode* targetRoot,
