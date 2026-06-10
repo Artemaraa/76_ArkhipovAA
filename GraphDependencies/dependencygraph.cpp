@@ -2,7 +2,44 @@
 
 DependencyGraph::DependencyGraph() {}
 
-DependencyGraph::~DependencyGraph() {}
+DependencyGraph::~DependencyGraph()
+{
+    clear();
+}
+
+// Очистка графа
+void DependencyGraph::clear()
+{
+    // Удалить все рёбра
+    qDeleteAll(edges);
+    // Опустошить списки и таблицы навигации
+    actions.clear();
+    edges.clear();
+    outgoing.clear();
+    incoming.clear();
+}
+
+// Построение графа по всем действиям
+void DependencyGraph::buildGraph(const QList<Action*>& actionsList, QMap<QString, Action*>& varTable, QSet<Error>& errors)
+{
+    // Очистить таблицу переменных и граф
+    varTable.clear();
+    clear();
+
+    // Пройти по списку действий
+    for (int i = 0; i < actionsList.size(); ++i) {
+        Action* action = actionsList[i];
+        // Для каждого действия вызвать применение действия
+        if (action != nullptr) {
+            applyAction(action,
+                        action->targetRoot,
+                        action->sourceVariables,
+                        action->modifiedVariables,
+                        varTable,
+                        errors);
+        }
+    }
+}
 
 // Заглушка: связь не найдена, источника нет
 DependencyType DependencyGraph::determineDependency(ExprNode* varNode,
@@ -38,15 +75,6 @@ QList<Action*> DependencyGraph::getIncoming(Action* action) const
     return QList<Action*>();
 }
 
-// Заглушка: граф не строится
-void DependencyGraph::buildGraph(const QList<Action*>& actionsList,
-                                 QMap<QString, Action*>& varTable,
-                                 QSet<Error>& errors)
-{
-    Q_UNUSED(actionsList);
-    Q_UNUSED(varTable);
-    Q_UNUSED(errors);
-}
 // Заглушка пустой граф
 QString DependencyGraph::toDOT() const
 {
