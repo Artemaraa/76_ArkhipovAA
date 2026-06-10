@@ -84,6 +84,13 @@ public:
                                 int lineNumber,
                                 Error& error);
 
+    /**
+     * @brief Определяет зависимость одной прочитанной переменной от предыдущего действия
+     * @param[in]  varNode          узел прочитанной переменной
+     * @param[in]  varTable         таблица переменных
+     * @param[out] dependencyAction найденное действие-источник (или nullptr)
+     * @return тип зависимости
+     */
     DependencyType determineDependency(ExprNode* varNode,
                                        const QMap<QString, Action*>& varTable,
                                        Action*& dependencyAction);

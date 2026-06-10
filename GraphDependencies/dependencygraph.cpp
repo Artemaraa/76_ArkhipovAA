@@ -159,14 +159,36 @@ bool DependencyGraph::validateArrayDimension(ExprNode* targetRoot,
     return false;
 }
 
+// Определение зависимости для одной прочитанной переменной
 DependencyType DependencyGraph::determineDependency(ExprNode* varNode,
                                                     const QMap<QString, Action*>& varTable,
                                                     Action*& dependencyAction)
 {
-    Q_UNUSED(varNode);
-    Q_UNUSED(varTable);
+    DependencyType result = NoDependency;// по умолчанию связи нет
     dependencyAction = nullptr;
-    return NoDependency;
+    // Если узел задан, найти источник
+    if (varNode) {
+        const QString varName = getArrayName(varNode);
+        // Имя должно быть непустым и присутствовать в таблице
+        if (!varName.isEmpty() && varTable.contains(varName)) {
+            Action* last = varTable[varName];
+            // переменная изменилась / объявилась ранее
+            if (last != nullptr && last->targetRoot != nullptr) {
+                dependencyAction = last;
+                // полчить имя цели действия
+                const QString targetName = getArrayName(last->targetRoot);
+                if (targetName == varName) {
+                    // сравнить индексы у полученной цели и заданного узла
+                    result = compareIndices(varNode, last->targetRoot);
+                } else {
+                    // Пользователь изменил переменную через ++/-- прямая связь
+                    result = Direct;
+                }
+            }
+        }
+    }
+    // Вернуть результат
+    return result;
 }
 
 QList<Action*> DependencyGraph::getIncoming(Action* action) const
