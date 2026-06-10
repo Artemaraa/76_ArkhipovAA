@@ -39,17 +39,35 @@ public:
      */
     void buildGraph(const QList<Action*>& actionsList,QMap<QString, Action*>& varTable, QSet<Error>& errors);
 
-
-    DependencyType determineDependency(ExprNode* varNode,
-                                       const QMap<QString, Action*>& varTable,
-                                       Action*& dependencyAction);
-
+    /**
+     * @brief Применяет одно действие: строит рёбра и обновляет таблицу переменных
+     * @param[in]     currentAction     текущее действие
+     * @param[in]     targetRoot        корень левой части
+     * @param[in]     sourceVariables   прочитанные переменные правой части
+     * @param[in]     modifiedVariables изменяемые переменные правой части
+     * @param[in,out] varTable          таблица переменных
+     * @param[in,out] errors            множество ошибок
+     */
     void applyAction(Action* currentAction,
                      ExprNode* targetRoot,
                      const QList<ExprNode*>& sourceVariables,
                      const QList<ExprNode*>& modifiedVariables,
                      QMap<QString, Action*>& varTable,
                      QSet<Error>& errors);
+
+    void addAction(Action* action);
+
+    void addEdge(Action* from, Action* to, DependencyType type);
+
+    bool validateArrayDimension(ExprNode* targetRoot,
+                                const QString& varName,
+                                const QMap<QString, Action*>& varTable,
+                                int lineNumber,
+                                Error& error);
+
+    DependencyType determineDependency(ExprNode* varNode,
+                                       const QMap<QString, Action*>& varTable,
+                                       Action*& dependencyAction);
 
     QList<Action*> getIncoming(Action* action) const;
 

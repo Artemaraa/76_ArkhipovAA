@@ -1,4 +1,5 @@
 #include "dependencygraph.h"
+#include "functions.h"
 
 DependencyGraph::DependencyGraph() {}
 
@@ -41,6 +42,79 @@ void DependencyGraph::buildGraph(const QList<Action*>& actionsList, QMap<QString
     }
 }
 
+// Применение одного действия
+void DependencyGraph::applyAction(Action* currentAction,
+                                  ExprNode* targetRoot,
+                                  const QList<ExprNode*>& sourceVariables,
+                                  const QList<ExprNode*>& modifiedVariables,
+                                  QMap<QString, Action*>& varTable,
+                                  QSet<Error>& errors)
+{
+    // Если действие пусто, выйти
+    if (currentAction == nullptr) {
+        return;
+    }
+    // Узнать имя целевой переменной; если имя пустое - выйти (некорректная цель)
+    const QString targetName = getArrayName(targetRoot);
+    if (targetName.isEmpty()) {
+        return;
+    }
+    // Проверить корректность размерности цели; при несоответствии добавить ошибку и выйти
+    Error dimError;
+    if (!validateArrayDimension(targetRoot, targetName, varTable, currentAction->number, dimError)) {
+        errors.insert(dimError);
+        return;
+    }
+    // Для каждой прочитанной переменной определить зависимость по таблице состояний
+    for (ExprNode* varNode : sourceVariables) {
+        Action* dependencyAction = nullptr;
+        const DependencyType depType = determineDependency(varNode, varTable, dependencyAction);
+        // Если зависимость есть,добавить ребро от текущего действия к найденному
+        if (depType != NoDependency && dependencyAction != nullptr) {
+            addEdge(currentAction, dependencyAction, depType);
+        }
+    }
+    // Запомнить, что целевую переменную последним изменило текущее действие
+    varTable[targetName] = currentAction;
+    // Для каждой изменяемой переменной (++/--) обновить запись в таблице на текущее действие
+    for (ExprNode* varNode : modifiedVariables) {
+        if (varNode) {
+            const QString varName = getArrayName(varNode);
+            if (!varName.isEmpty()) {
+                varTable[varName] = currentAction;
+            }
+        }
+    }
+    // Добавить текущее действие в список вершин графа
+    addAction(currentAction);
+}
+
+void DependencyGraph::addAction(Action* action)
+{
+    Q_UNUSED(action);
+}
+
+void DependencyGraph::addEdge(Action* from, Action* to, DependencyType type)
+{
+    Q_UNUSED(from);
+    Q_UNUSED(to);
+    Q_UNUSED(type);
+}
+
+bool DependencyGraph::validateArrayDimension(ExprNode* targetRoot,
+                                             const QString& varName,
+                                             const QMap<QString, Action*>& varTable,
+                                             int lineNumber,
+                                             Error& error)
+{
+    Q_UNUSED(targetRoot);
+    Q_UNUSED(varName);
+    Q_UNUSED(varTable);
+    Q_UNUSED(lineNumber);
+    Q_UNUSED(error);
+    return true;
+}
+
 // Заглушка: связь не найдена, источника нет
 DependencyType DependencyGraph::determineDependency(ExprNode* varNode,
                                                     const QMap<QString, Action*>& varTable,
@@ -50,22 +124,6 @@ DependencyType DependencyGraph::determineDependency(ExprNode* varNode,
     Q_UNUSED(varTable);
     dependencyAction = nullptr;
     return NoDependency;
-}
-
-// Заглушка действие не применяется
-void DependencyGraph::applyAction(Action* currentAction,
-                                  ExprNode* targetRoot,
-                                  const QList<ExprNode*>& sourceVariables,
-                                  const QList<ExprNode*>& modifiedVariables,
-                                  QMap<QString, Action*>& varTable,
-                                  QSet<Error>& errors)
-{
-    Q_UNUSED(currentAction);
-    Q_UNUSED(targetRoot);
-    Q_UNUSED(sourceVariables);
-    Q_UNUSED(modifiedVariables);
-    Q_UNUSED(varTable);
-    Q_UNUSED(errors);
 }
 
 // Заглушка входящих связей нет
