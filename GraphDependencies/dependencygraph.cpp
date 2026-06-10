@@ -191,13 +191,42 @@ DependencyType DependencyGraph::determineDependency(ExprNode* varNode,
     return result;
 }
 
-QList<Action*> DependencyGraph::getIncoming(Action* action) const
+// Навигация на кого влияет действие
+QList<Action*> DependencyGraph::getOutgoing(Action* action) const
 {
-    Q_UNUSED(action);
-    return QList<Action*>();
+    return outgoing.values(action);
 }
 
+// Навигация от кого зависит действие
+QList<Action*> DependencyGraph::getIncoming(Action* action) const
+{
+    return incoming.values(action);
+}
+
+// Формирование DOT-текста
 QString DependencyGraph::toDOT() const
 {
-    return QString();
+    // Записать заголовок графа
+    QString result = "digraph G {\n";
+
+    // Для каждой вершины добавить строку: номер действия и подпись с исходной строкой
+    for (Action* action : actions) {
+        result += "    " + QString::number(action->number) +
+                  " [label=\"" + action->originalLine + "\"];\n";
+    }
+
+    // Для каждого ребра добавить строку-стрелку "from -> to"
+    for (DependencyEdge* edge : edges) {
+        result += "    " + QString::number(edge->from->number) +
+                  " -> " + QString::number(edge->to->number);
+        // Если связь общая (General) - пометить её пунктиром
+        if (edge->type == General) {
+            result += " [style=dashed]";
+        }
+        result += ";\n";
+    }
+
+    // Закрыть блок графа и вернуть собранный текст
+    result += "}\n";
+    return result;
 }

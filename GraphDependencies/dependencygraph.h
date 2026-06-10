@@ -95,9 +95,26 @@ public:
                                        const QMap<QString, Action*>& varTable,
                                        Action*& dependencyAction);
 
+    /**
+     * @brief Возвращает действия, на которые влияет заданное (зависят от него)
+     * @param[in] action  действие
+     * @return список зависимых действий
+     */
+    QList<Action*> getOutgoing(Action* action) const;
+
+    /**
+     * @brief Возвращает действия, от которых зависит заданное (его источники)
+     * @param[in] action  действие
+     * @return список действий-источников
+     */
     QList<Action*> getIncoming(Action* action) const;
 
+    /**
+     * @brief Формирует текст графа в формате DOT
+     * @return строка DOT
+     */
     QString toDOT() const;
+
 };
 
 #endif // DEPENDENCYGRAPH_H
