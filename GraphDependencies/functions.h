@@ -149,5 +149,13 @@ void collectModified(ExprNode* node, QList<ExprNode*>& modified);
  */
 DependencyType compareIndices(ExprNode* node1, ExprNode* node2);
 
+/**
+ * @brief Читает входной файл построчно
+ * @param[in]     filePath     путь к файлу
+ * @param[out]    fileContent   список прочитанных строк
+ * @param[in,out] errors      множество ошибок
+ * @return успех, если файл удалось открыть и прочитать
+ */
+bool readFile(const QString& filePath, QStringList& fileContent, QSet<Error>& errors);
 
 #endif // FUNCTIONS_H

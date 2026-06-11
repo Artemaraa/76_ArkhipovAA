@@ -1,4 +1,6 @@
 #include "functions.h"
+#include <QFile>
+#include <QTextStream>
 
 // Разбор всех строк
 void parseActions(const QStringList& fileContent, QList<Action*>& actions, QSet<Error>& errors)
@@ -428,3 +430,22 @@ DependencyType compareIndices(ExprNode* node1, ExprNode* node2)
     return result;
 }
 
+// Чтение файла
+bool readFile(const QString& filePath, QStringList& fileContent, QSet<Error>& errors)
+{
+    // Открыть файл
+    QFile file(filePath);
+    // Если файл не открылся - добавить ошибку и выйти
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        errors.insert(Error(InputFileNotFound, 0, 0, filePath));
+        return false;
+    }
+    // Прочитать все строки из файла и добавить их в список строк
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+        fileContent.append(in.readLine());
+    }
+    // Закрыть файл и выйти
+    file.close();
+    return true;
+}
