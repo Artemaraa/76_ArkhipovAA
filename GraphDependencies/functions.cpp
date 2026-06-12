@@ -449,3 +449,40 @@ bool readFile(const QString& filePath, QStringList& fileContent, QSet<Error>& er
     file.close();
     return true;
 }
+
+// Проверка согласованности размерностей переменных
+void checkDimensions(const QList<Action*>& actions, QSet<Error>& errors)
+{
+    // Таблица:зафиксированная размерность (0 = скаляр, >=1 = массив)
+    QMap<QString, int> dims;
+    // Пройти по всем действиям по порядку
+    for (Action* action : actions) {
+        if (!action) continue;
+        // Собрать все узлы-переменные действия: левая часть (цель) + правая часть
+        QList<ExprNode*> vars;
+        collectSources(action->targetRoot, vars);   // переменные левой части
+        vars.append(action->sourceVariables);       // переменные правой части (уже собраны)
+        // Проверить каждую переменную
+        for (ExprNode* node : vars) {
+            const QString name = getArrayName(node);
+            if (name.isEmpty()) continue;
+            const int dim = getArrayDimension(node);
+            if (!dims.contains(name)) {
+                // Первое появление имени фиксирует его размерность
+                dims[name] = dim;
+            } else if (dims[name] != dim) {
+                // Размерность не совпала с зафиксированной - выбрать точный тип ошибки
+                const int saved = dims[name];
+                ErrorType t;
+                if (saved == 0 && dim > 0) {
+                    t = ScalarWithIndex;       // был скаляр, используется с индексом
+                } else if (saved > 0 && dim == 0) {
+                    t = ArrayWithoutIndex;     // был массив, используется без индекса
+                } else {
+                    t = InvalidArrayDimension; // другое число измерений
+                }
+                errors.insert(Error(t, action->number, 0, name));
+            }
+        }
+    }
+}

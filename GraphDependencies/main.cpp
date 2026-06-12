@@ -52,6 +52,8 @@ int main(int argc, char *argv[])
     // Разобрать строки в список действий
     QList<Action*> actions;
     parseActions(fileContent, actions, errors);
+    // Проверить согласованность размерностей переменных
+    checkDimensions(actions, errors);
 
     // Если при разборе появились ошибки - вывести их, освободить действия и выйти
     if (!errors.isEmpty()) {

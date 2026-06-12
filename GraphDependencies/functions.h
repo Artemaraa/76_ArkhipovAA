@@ -6,6 +6,7 @@
 #include <QList>
 #include <QSet>
 #include <QStringList>
+#include <QMap>
 
 #include "exprnode.h"
 #include "error.h"
@@ -157,5 +158,14 @@ DependencyType compareIndices(ExprNode* node1, ExprNode* node2);
  * @return успех, если файл удалось открыть и прочитать
  */
 bool readFile(const QString& filePath, QStringList& fileContent, QSet<Error>& errors);
+
+/**
+ * @brief Проверяет согласованность размерностей переменных по всем действиям.
+ * Каждое имя должно использоваться единообразно: скаляр всегда без индексов,
+ * массив всегда с индексами той же размерности. При несоответствии — ошибка.
+ * @param[in]     actions  список действий
+ * @param[in,out] errors   множество ошибок
+ */
+void checkDimensions(const QList<Action*>& actions, QSet<Error>& errors);
 
 #endif // FUNCTIONS_H
