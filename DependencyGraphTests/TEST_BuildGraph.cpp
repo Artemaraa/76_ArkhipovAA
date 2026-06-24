@@ -320,12 +320,13 @@ void TEST_BuildGraph::TestEmptyInputFile()
 {
     QSet<Error> errors;
     QList<Action*> actions;
-
     QStringList lines = {};
     parseActions(lines, actions, errors);
-
-    QCOMPARE(errors.size(), 0);
+    // parseActions теперь сам ловит пустой файл и выдаёт EmptyInputFile
+    QCOMPARE(errors.size(), 1);
     QCOMPARE(actions.size(), 0);
+    // Проверить, что это именно ошибка пустого файла
+    QVERIFY(errors.contains(Error(EmptyInputFile, 0, 0, "")));
 }
 
 // ============================================================

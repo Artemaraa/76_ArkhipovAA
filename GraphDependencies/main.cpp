@@ -1,3 +1,62 @@
+/**
+ * @mainpage Построение графа зависимостей действий
+ *
+ * @section intro Назначение
+ * Программа строит ориентированный граф непосредственных зависимостей
+ * действий по заданной трассе выполнения в постфиксной записи и выводит
+ * результат в формате DOT (Graphviz).
+ *
+ * Действие зависит от другого, если использует значение переменной
+ * (или элемента массива), изменённое последним предшествующим действием.
+ * Зависимости по массивам бывают прямыми (точное совпадение индексов)
+ * и общими (индекс задан переменной, показаны пунктиром).
+ *
+ * @section usage Запуск
+ * @code
+ * GraphDependencies.exe input.txt output.dot
+ * @endcode
+ *
+ * @section example Пример работы
+ *
+ * Входной файл:
+ * @code
+ * a = 5
+ * b = a 1 +
+ * c = a b *
+ * n i [] = a
+ * v = n i [] b +
+ * f = n 3 [] a -
+ * k = a ++
+ * privet = a k -
+ * @endcode
+ *
+ * Выходной файл (DOT):
+ * @code
+ * digraph G {
+ *     1 [label="a = 5"];
+ *     2 [label="b = a 1 +"];
+ *     3 [label="c = a b *"];
+ *     4 [label="n i [] = a"];
+ *     5 [label="v = n i [] b +"];
+ *     6 [label="f = n 3 [] a -"];
+ *     7 [label="k = a ++"];
+ *     8 [label="privet = a k -"];
+ *     2 -> 1;
+ *     3 -> 1;
+ *     3 -> 2;
+ *     4 -> 1;
+ *     5 -> 4;
+ *     5 -> 2;
+ *     6 -> 4 [style=dashed];
+ *     6 -> 1;
+ *     7 -> 1;
+ *     8 -> 7;
+ * }
+ * @endcode
+ *
+ * Визуализация полученного графа:
+ * @image html dot.png "Граф зависимостей для примера"
+ */
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFile>
@@ -34,17 +93,6 @@ int main(int argc, char *argv[])
 
     // Прочитать входной файл; при ошибке чтения, вывести ошибки и завершить работу
     if (!readFile(inputFile, fileContent, errors)) {
-        printErrors(errors);
-        return 1;
-    }
-
-    // Проверить, что файл не пуст: если все строки пустые - ошибка и выход
-    bool hasNonEmptyLine = false;
-    for (const QString& line : fileContent) {
-        if (!line.trimmed().isEmpty()) { hasNonEmptyLine = true; break; }
-    }
-    if (!hasNonEmptyLine) {
-        errors.insert(Error(EmptyInputFile, 0, 0, ""));
         printErrors(errors);
         return 1;
     }

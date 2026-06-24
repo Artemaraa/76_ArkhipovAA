@@ -5,17 +5,30 @@
 // Разбор всех строк
 void parseActions(const QStringList& fileContent, QList<Action*>& actions, QSet<Error>& errors)
 {
+    // Проверка на пустоту файла: есть ли хоть одна непустая (после обрезки) строка
+    bool hasContent = false;
+    for (int i = 0; i < fileContent.size(); i++) {
+        if (!fileContent[i].trimmed().isEmpty()) {
+            hasContent = true;
+            break;
+        }
+    }
+    // Если содержимого нет - добавить ошибку и выйти
+    if (!hasContent) {
+        errors.insert(Error(EmptyInputFile, 0, 0, ""));
+        return;
+    }
+
     // Обнулить счетчик строк
     int lineNum = 0;
     // Для каждой строки
     for (int i = 0; i < fileContent.size(); i++){
         // Увеличить счётчик строк
         lineNum++;
-        // Убрать пробелы по краям
-        const QString trimmedLine = fileContent[i].trimmed();
         // Если строка непустая - передать в разбор одной строки
-        if (!trimmedLine.isEmpty()) {
-            parseSingleLine(trimmedLine, lineNum, actions, errors);
+        if (!fileContent[i].trimmed().isEmpty()) {
+            // Передать строку в разбор одной строки (обрезку делает parseSingleLine)
+            parseSingleLine(fileContent[i], lineNum, actions, errors);
         }
     }
     // Если количество действий превысило лимит => добавить ошибку
@@ -26,13 +39,15 @@ void parseActions(const QStringList& fileContent, QList<Action*>& actions, QSet<
 }
 
 // Разбор одной строки трассы в действие
-void parseSingleLine(const QString& trimmedLine, int lineNum, QList<Action*>& actions, QSet<Error>& errors)
+void parseSingleLine(const QString& rawLine, int lineNumber, QList<Action*>& actions, QSet<Error>& errors)
 {
+    // Обрезать пробелы по краям
+    const QString trimmedLine = rawLine.trimmed();
     // Найти знак равенства
     const int eqPos = trimmedLine.indexOf('=');
     // Если знака нет, добавить ошибку и выйти
     if (eqPos == -1) {
-        errors.insert(Error(NoEqualSign, lineNum, 0, trimmedLine));
+        errors.insert(Error(NoEqualSign, lineNumber, 0, trimmedLine));
         return;
     }
 
@@ -43,12 +58,12 @@ void parseSingleLine(const QString& trimmedLine, int lineNum, QList<Action*>& ac
     bool hasValidationError = false;
     // Если левая часть пуста, добавить ошибку
     if (leftPart.isEmpty()) {
-        errors.insert(Error(EmptyLeftPart, lineNum, 0, ""));
+        errors.insert(Error(EmptyLeftPart, lineNumber, 0, ""));
         hasValidationError = true;
     }
     // Если правая часть пуста, добавить ошибку
     if (rightPart.isEmpty()) {
-        errors.insert(Error(EmptyExpression, lineNum, 0, ""));
+        errors.insert(Error(EmptyExpression, lineNumber, 0, ""));
         hasValidationError = true;
     }
     // При любой из этих ошибок действие не создаётся, выйти
@@ -57,17 +72,17 @@ void parseSingleLine(const QString& trimmedLine, int lineNum, QList<Action*>& ac
     }
 
     // Создать действие с номером строки
-    Action* action = new Action(lineNum);
+    Action* action = new Action(lineNumber);
     // Сохранить исходный текст строки
     action->originalLine = trimmedLine;
 
     // Разобрать левую часть в дерево (targetRoot)(списки источников/изменяемых для неё не нужны)
     QList<ExprNode*> leftSources;
     QList<ExprNode*> leftModified;
-    action->targetRoot = parseExpression(leftPart, leftSources, leftModified, lineNum, errors);
+    action->targetRoot = parseExpression(leftPart, leftSources, leftModified, lineNumber, errors);
 
     // Разобрать правую часть в дерево (expression), передав списки источников и изменяемых действия
-    action->expression = parseExpression(rightPart, action->sourceVariables, action->modifiedVariables, lineNum, errors);
+    action->expression = parseExpression(rightPart, action->sourceVariables, action->modifiedVariables, lineNumber, errors);
 
     // Если оба дерева построены, добавить действие в список, иначе удалить действие
     if (action->targetRoot != nullptr && action->expression != nullptr) {

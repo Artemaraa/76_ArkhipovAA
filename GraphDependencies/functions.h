@@ -1,5 +1,13 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
+/**
+ * @file functions.h
+ * @brief Разбор трассы и построение деревьев выражений
+ *
+ * Содержит свободные функции для чтения входного файла, разбора строк
+ * трассы в действия, построения деревьев выражений из постфиксной записи,
+ * сбора используемых переменных и проверки размерностей.
+ */
 #include <QStack>
 #include <QRegularExpression>
 #include <QString>
@@ -35,12 +43,12 @@ void parseActions(const QStringList& fileContent, QList<Action*>& actions, QSet<
 
 /**
  * @brief Разбирает одну строку трассы в действие.
- * @param[in]     trimmedLine  строка без крайних пробелов
+ * @param[in]     rawLine  сырая строка
  * @param[in]     lineNumber   номер строки
  * @param[in,out] actions      список действий
  * @param[in,out] errors       множество ошибок
  */
-void parseSingleLine(const QString& trimmedLine, int lineNumber,
+void parseSingleLine(const QString& rawLine, int lineNumber,
                      QList<Action*>& actions, QSet<Error>& errors);
 
 /**
