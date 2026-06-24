@@ -22,14 +22,11 @@ void parseActions(const QStringList& fileContent, QList<Action*>& actions, QSet<
     // Обнулить счетчик строк
     int lineNum = 0;
     // Для каждой строки
-    for (int i = 0; i < fileContent.size(); i++){
+    for (int i = 0; i < fileContent.size(); i++) {
         // Увеличить счётчик строк
         lineNum++;
-        // Если строка непустая - передать в разбор одной строки
-        if (!fileContent[i].trimmed().isEmpty()) {
-            // Передать строку в разбор одной строки (обрезку делает parseSingleLine)
-            parseSingleLine(fileContent[i], lineNum, actions, errors);
-        }
+        // Передать строку в разбор (пустые строки отсеются внутри parseSingleLine)
+        parseSingleLine(fileContent[i], lineNum, actions, errors);
     }
     // Если количество действий превысило лимит => добавить ошибку
     if (actions.size() > MAX_ACTIONS) {
@@ -43,6 +40,10 @@ void parseSingleLine(const QString& rawLine, int lineNumber, QList<Action*>& act
 {
     // Обрезать пробелы по краям
     const QString trimmedLine = rawLine.trimmed();
+    // Пустая строка - не действие и не ошибка, просто пропустить
+    if (trimmedLine.isEmpty()) {
+        return;
+    }
     // Найти знак равенства
     const int eqPos = trimmedLine.indexOf('=');
     // Если знака нет, добавить ошибку и выйти
@@ -463,41 +464,4 @@ bool readFile(const QString& filePath, QStringList& fileContent, QSet<Error>& er
     // Закрыть файл и выйти
     file.close();
     return true;
-}
-
-// Проверка согласованности размерностей переменных
-void checkDimensions(const QList<Action*>& actions, QSet<Error>& errors)
-{
-    // Таблица:зафиксированная размерность (0 = скаляр, >=1 = массив)
-    QMap<QString, int> dims;
-    // Пройти по всем действиям по порядку
-    for (Action* action : actions) {
-        if (!action) continue;
-        // Собрать все узлы-переменные действия: левая часть (цель) + правая часть
-        QList<ExprNode*> vars;
-        collectSources(action->targetRoot, vars);   // переменные левой части
-        vars.append(action->sourceVariables);       // переменные правой части (уже собраны)
-        // Проверить каждую переменную
-        for (ExprNode* node : vars) {
-            const QString name = getArrayName(node);
-            if (name.isEmpty()) continue;
-            const int dim = getArrayDimension(node);
-            if (!dims.contains(name)) {
-                // Первое появление имени фиксирует его размерность
-                dims[name] = dim;
-            } else if (dims[name] != dim) {
-                // Размерность не совпала с зафиксированной - выбрать точный тип ошибки
-                const int saved = dims[name];
-                ErrorType t;
-                if (saved == 0 && dim > 0) {
-                    t = ScalarWithIndex;       // был скаляр, используется с индексом
-                } else if (saved > 0 && dim == 0) {
-                    t = ArrayWithoutIndex;     // был массив, используется без индекса
-                } else {
-                    t = InvalidArrayDimension; // другое число измерений
-                }
-                errors.insert(Error(t, action->number, 0, name));
-            }
-        }
-    }
 }

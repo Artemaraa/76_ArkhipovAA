@@ -1,6 +1,12 @@
 #ifndef EXPRNODE_H
 #define EXPRNODE_H
-
+/**
+ * @file exprnode.h
+ * @brief Узел дерева выражения
+ *
+ * Определяет тип токена и узел дерева разбора постфиксного выражения
+ * с левым и правым операндами.
+ */
 #include <QString>
 
 /**
@@ -9,15 +15,15 @@
  * Определяет, чем является узел: операндом (переменная/число) или операцией
  */
 enum TokenType {
-    Var,        // переменная
-    Number,     // число
-    Plus,       // +
-    Minus,      // -
-    Multiply,   // *
-    Divide,     // /
-    Increment,  // ++
-    Decrement,  // --
-    ArrayAccess // []
+    Var,        ///< переменная
+    Number,     ///< число
+    Plus,       ///< бинарный оператор сложения
+    Minus,      ///< бинарный оператор вычитания
+    Multiply,   ///< бинарный оператор умножения
+    Divide,     ///< бинарный оператор деления
+    Increment,  ///< унарный инкремент
+    Decrement,  ///< унарный декремент
+    ArrayAccess ///< доступ к элементу массива
 };
 
 /**
@@ -40,7 +46,11 @@ public:
      * @param[in] t  тип узла (вид токена)
      * @param[in] v  значение узла (имя переменной или текст числа)
      */
-    ExprNode(TokenType t, const QString& v = "");
+    explicit ExprNode(TokenType t, const QString& v = "");
+
+    // Запрет копирования: узел владеет потомками и не должен копироваться
+    ExprNode(const ExprNode&) = delete;
+    ExprNode& operator=(const ExprNode&) = delete;
 
     /**
      * @brief Деструктор

@@ -46,14 +46,16 @@ public:
     void buildGraph(const QList<Action*>& actionsList,QMap<QString, Action*>& varTable, QSet<Error>& errors);
 
     /**
-    * @brief Применяет одно действие: строит рёбра и обновляет таблицу переменных
+    * @brief Применяет одно действие: проверяет размерности, строит рёбра и обновляет таблицу переменных
     * @param[in]     currentAction текущее действие (данные берутся из его полей)
-    * @param[in,out] varTable      таблица переменных
+    * @param[in,out] varTable      таблица переменных (последнее изменившее действие)
     * @param[in,out] errors        множество ошибок
+    * @param[in,out] dims          таблица размерностей переменных (0 = скаляр, ≥1 = массив)
     */
     void applyAction(Action* currentAction,
                      QMap<QString, Action*>& varTable,
-                     QSet<Error>& errors);
+                     QSet<Error>& errors,
+                     QMap<QString, int>& dims);
 
     /**
      * @brief Добавляет вершину (действие) в граф
@@ -70,20 +72,19 @@ public:
     void addEdge(Action* from, Action* to, DependencyType type);
 
     /**
-     * @brief Проверяет корректность размерности целевой переменной
-     * @param[in]  targetRoot  корень левой части
-     * @param[in]  varName      имя целевой переменной
-     * @param[in]  varTable    таблица переменных
-     * @param[in]  lineNumber  номер строки
-     * @param[out] error      заполняется при несоответствии
-     * @return true - корректно, false - несоответствие
+     * @brief Проверяет и фиксирует размерность одной переменной по контексту размерностей
+     * @param[in]     node        узел переменной (цель или источник)
+     * @param[in]     varName     имя переменной
+     * @param[in,out] dims        таблица размерностей (0 = скаляр, ≥1 = массив)
+     * @param[in]     lineNumber  номер строки
+     * @param[out]    error       заполняется при несоответствии размерности
+     * @return true - корректно (или имя зафиксировано впервые), false - несоответствие
      */
-    bool validateArrayDimension(ExprNode* targetRoot,
+    bool validateArrayDimension(ExprNode* node,
                                 const QString& varName,
-                                const QMap<QString, Action*>& varTable,
+                                QMap<QString, int>& dims,
                                 int lineNumber,
                                 Error& error);
-
     /**
      * @brief Определяет зависимость одной прочитанной переменной от предыдущего действия
      * @param[in]  varNode          узел прочитанной переменной

@@ -1,6 +1,12 @@
 #ifndef DEPENDENCYEDGE_H
 #define DEPENDENCYEDGE_H
-
+/**
+ * @file dependencyedge.h
+ * @brief Ребро графа зависимостей
+ *
+ * Описывает ориентированное ребро между двумя действиями и тип
+ * зависимости (прямая или общая).
+ */
 class Action;
 
 /**

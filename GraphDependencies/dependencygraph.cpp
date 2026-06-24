@@ -27,18 +27,21 @@ void DependencyGraph::buildGraph(const QList<Action*>& actionsList, QMap<QString
     varTable.clear();
     clear();
 
+    // Контекст размерностей на всё построение (0 = скаляр, >=1 = массив)
+    QMap<QString, int> dims;
+
     // Пройти по списку действий
     for (int i = 0; i < actionsList.size(); ++i) {
         Action* action = actionsList[i];
         // Для каждого действия вызвать применение действия
         if (action != nullptr) {
-            applyAction(action, varTable, errors);
+            applyAction(action, varTable, errors, dims);
         }
     }
 }
 
 // Применение одного действия
-void DependencyGraph::applyAction(Action* currentAction, QMap<QString, Action*>& varTable, QSet<Error>& errors)
+void DependencyGraph::applyAction(Action* currentAction, QMap<QString, Action*>& varTable, QSet<Error>& errors, QMap<QString, int>& dims)
 {
     // Если действие пусто, выйти
     if (currentAction == nullptr) {
@@ -54,12 +57,31 @@ void DependencyGraph::applyAction(Action* currentAction, QMap<QString, Action*>&
     if (targetName.isEmpty()) {
         return;
     }
-    // Проверить корректность размерности цели; при несоответствии добавить ошибку и выйти
-    Error dimError;
-    if (!validateArrayDimension(targetRoot, targetName, varTable, currentAction->number, dimError)) {
-        errors.insert(dimError);
+    // Собрать переменные левой части (цель) и правой части (источники)
+    QList<ExprNode*> vars;
+    collectSources(targetRoot, vars);
+    vars.append(sourceVariables);
+    // Проверить каждую переменную по контексту dims; все ошибки копим, НЕ выходим на первой
+    bool hasDimError = false;
+    for (ExprNode* node : vars) {
+        const QString name = getArrayName(node);
+        if (name.isEmpty()) {
+            continue;
+        }
+        if (!name.isEmpty()) {
+            Error dimError;
+            if (!validateArrayDimension(node, name, dims, currentAction->number, dimError)) {
+                errors.insert(dimError);
+                hasDimError = true;
+            }
+        }
+
+    }
+    // Если у действия есть ошибка размерности - не строим рёбра и не трогаем varTable
+    if (hasDimError) {
         return;
     }
+
     // Для каждой прочитанной переменной определить зависимость по таблице состояний
     for (ExprNode* varNode : sourceVariables) {
         Action* dependencyAction = nullptr;
@@ -120,36 +142,31 @@ void DependencyGraph::addEdge(Action* from, Action* to, DependencyType type)
 }
 
 // Проверка размерности целевой переменной
-bool DependencyGraph::validateArrayDimension(ExprNode* targetRoot,
+bool DependencyGraph::validateArrayDimension(ExprNode* node,
                                              const QString& varName,
-                                             const QMap<QString, Action*>& varTable,
+                                             QMap<QString, int>& dims,
                                              int lineNumber,
                                              Error& error)
 {
-    // Вычислить размерность текущей цели
-    const int currentDim = getArrayDimension(targetRoot);
-    // Если имя ещё не встречалось в таблице, это первое использование
-    if (!varTable.contains(varName)) {
+    // Размерность этой переменной (0 = скаляр, >=1 = массив)
+    const int currentDim = getArrayDimension(node);
+    // Если имя ещё не встречалось - зафиксировать его размерность
+    if (!dims.contains(varName)) {
+        dims[varName] = currentDim;
         return true;
     }
-    // Взять последнее действие, изменявшее эту переменную
-    Action* lastAction = varTable[varName];
-    if (lastAction == nullptr || lastAction->targetRoot == nullptr) {
-        return true;
-    }
-    // Вычислить размерность у переменной, которую мы взяли
-    const int savedDim = getArrayDimension(lastAction->targetRoot);
-    // Если размерности совпадают - вернуть успех
+    // Сверить с зафиксированной ранее размерностью
+    const int savedDim = dims[varName];
     if (currentDim == savedDim) {
         return true;
     }
-    // Если размерности разошлись,заполнить ошибку точным типом
+    // Размерности разошлись - выбрать точный тип ошибки
     if (savedDim == 0 && currentDim > 0) {
-        error = Error(ScalarWithIndex, lineNumber, 0, varName); // был скаляр, стал массив
+        error = Error(ScalarWithIndex, lineNumber, 0, varName);      // был скаляр, стал массив
     } else if (savedDim > 0 && currentDim == 0) {
-        error = Error(ArrayWithoutIndex, lineNumber, 0, varName); // был массив, стал скаляр
+        error = Error(ArrayWithoutIndex, lineNumber, 0, varName);    // был массив, стал скаляр
     } else {
-        error = Error(InvalidArrayDimension, lineNumber, 0, varName); // число измерений разное
+        error = Error(InvalidArrayDimension, lineNumber, 0, varName); // другое число измерений
     }
     return false;
 }

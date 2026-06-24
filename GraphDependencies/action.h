@@ -1,6 +1,12 @@
 #ifndef ACTION_H
 #define ACTION_H
-
+/**
+ * @file action.h
+ * @brief Класс действия трассы
+ *
+ * Описывает одно действие: номер, дерево целевой переменной, дерево
+ * выражения, списки используемых и изменяемых переменных, исходную строку.
+ */
 #include <QString>
 #include <QList>
 
@@ -29,7 +35,11 @@ public:
      * @brief Создаёт действие с заданным номером.
      * @param[in] num  номер действия (номер строки трассы)
      */
-    Action(int num);
+    explicit Action(int num);
+
+    // Запрет копирования: объект владеет деревьями и не должен копироваться
+    Action(const Action&) = delete;
+    Action& operator=(const Action&) = delete;
 
     /**
      * @brief Деструктор: удаляет деревья левой и правой частей.

@@ -1,5 +1,12 @@
 #ifndef ERROR_H
 #define ERROR_H
+/**
+ * @file error.h
+ * @brief Класс ошибки и генерация сообщений
+ *
+ * Определяет тип ошибки, структуру Error с местом возникновения
+ * и метод формирования текстового сообщения для вывода пользователю.
+ */
 #include <QString>
 #include <QHash>
 
@@ -11,29 +18,29 @@
  * построения графа.
  */
 enum ErrorType {
-    NoError,                  // ошибки нет (значение по умолчанию)
-    InputFileNotFound,        // входной файл не открылся
-    OutputFileCreateFail,     // не удалось создать выходной файл
-    EmptyInputFile,           // входной файл пуст
-    NoEqualSign,              // в строке нет знака '='
-    EmptyLeftPart,            // пустая левая часть (до '=')
-    EmptyExpression,          // пустая правая часть (после '=')
-    InvalidVariableName,      // имя переменной не по формату
-    VariableNameTooLong,      // имя длиннее 255 символов
-    UnsupportedOperator,      // неизвестный токен/оператор
-    NumberOutOfRange,         // константа вне диапазона int
-    InvalidNumberFormat,      // константа не целая (напр. 3.14)
-    NotEnoughOperands,        // оператору не хватило операндов в стеке
-    UnaryOperandNotVariable,  // ++/-- применён не к переменной (напр. к числу)
-    ExtraOperands,            // после разбора в стеке осталось > 1 узла
-    UnclosedBracket,          // незакрытая '['
-    ExtraClosingBracket,      // лишняя ']'
-    MissingArrayIndex,        // отсутствует индекс массива
-    ArrayWithoutIndex,        // массив использован без индекса
-    ScalarWithIndex,          // скаляр использован с индексом
-    InvalidArrayDimension,    // у массива изменилась размерность
-    NestingDepthExceeded,     // глубина вложенности индексов > 5
-    TooManyActions            // в трассе > 10 000 действий
+    NoError,                  ///< ошибки нет (значение по умолчанию)
+    InputFileNotFound,        ///< входной файл не открылся
+    OutputFileCreateFail,     ///< не удалось создать выходной файл
+    EmptyInputFile,           ///< входной файл пуст
+    NoEqualSign,              ///< в строке нет знака '='
+    EmptyLeftPart,            ///< пустая левая часть (до '=')
+    EmptyExpression,          ///< пустая правая часть (после '=')
+    InvalidVariableName,      ///< имя переменной не по формату
+    VariableNameTooLong,      ///< имя длиннее 255 символов
+    UnsupportedOperator,      ///< неизвестный токен/оператор
+    NumberOutOfRange,         ///< константа вне диапазона int
+    InvalidNumberFormat,      ///< константа не целая (напр. 3.14)
+    NotEnoughOperands,        ///< оператору не хватило операндов в стеке
+    UnaryOperandNotVariable,  ///< ++/-- применён не к переменной (напр. к числу)
+    ExtraOperands,            ///< после разбора в стеке осталось > 1 узла
+    UnclosedBracket,          ///< незакрытая '['
+    ExtraClosingBracket,      ///< лишняя ']'
+    MissingArrayIndex,        ///< отсутствует индекс массива
+    ArrayWithoutIndex,        ///< массив использован без индекса
+    ScalarWithIndex,          ///< скаляр использован с индексом
+    InvalidArrayDimension,    ///< у массива изменилась размерность
+    NestingDepthExceeded,     ///< глубина вложенности индексов > 5
+    TooManyActions            ///< в трассе > 10 000 действий
 };
 
 
