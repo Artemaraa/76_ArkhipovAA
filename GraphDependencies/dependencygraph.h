@@ -1,6 +1,12 @@
 #ifndef DEPENDENCYGRAPH_H
 #define DEPENDENCYGRAPH_H
-
+/**
+ * @file dependencygraph.h
+ * @brief Класс графа зависимостей действий
+ *
+ * Строит граф зависимостей по списку действий, хранит вершины и рёбра,
+ * определяет типы зависимостей и формирует вывод в формате DOT.
+ */
 #include <QMap>
 #include <QList>
 #include <QSet>
@@ -40,18 +46,12 @@ public:
     void buildGraph(const QList<Action*>& actionsList,QMap<QString, Action*>& varTable, QSet<Error>& errors);
 
     /**
-     * @brief Применяет одно действие: строит рёбра и обновляет таблицу переменных
-     * @param[in]     currentAction     текущее действие
-     * @param[in]     targetRoot        корень левой части
-     * @param[in]     sourceVariables   прочитанные переменные правой части
-     * @param[in]     modifiedVariables изменяемые переменные правой части
-     * @param[in,out] varTable          таблица переменных
-     * @param[in,out] errors            множество ошибок
-     */
+    * @brief Применяет одно действие: строит рёбра и обновляет таблицу переменных
+    * @param[in]     currentAction текущее действие (данные берутся из его полей)
+    * @param[in,out] varTable      таблица переменных
+    * @param[in,out] errors        множество ошибок
+    */
     void applyAction(Action* currentAction,
-                     ExprNode* targetRoot,
-                     const QList<ExprNode*>& sourceVariables,
-                     const QList<ExprNode*>& modifiedVariables,
                      QMap<QString, Action*>& varTable,
                      QSet<Error>& errors);
 

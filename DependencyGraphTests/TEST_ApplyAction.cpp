@@ -26,9 +26,7 @@ void TEST_ApplyAction::TestFirstActionNoDependencies()
     action1->sourceVariables.append(b);
     action1->sourceVariables.append(c);
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     QCOMPARE(errors.size(), 0);
     QCOMPARE(varTable.size(), 1);
@@ -52,9 +50,7 @@ void TEST_ApplyAction::TestDependencyFromPrevious()
     action1->targetRoot = new ExprNode(Var, "a");
     action1->expression = new ExprNode(Number, "0");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // b = a 1 *
     Action* action2 = new Action(2);
@@ -67,9 +63,7 @@ void TEST_ApplyAction::TestDependencyFromPrevious()
     action2->expression = mult;
     action2->sourceVariables.append(a);
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QCOMPARE(errors.size(), 0);
     QCOMPARE(varTable.size(), 2);
@@ -99,9 +93,7 @@ void TEST_ApplyAction::TestIncrementVariable()
     action1->targetRoot = new ExprNode(Var, "x");
     action1->expression = new ExprNode(Number, "5");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // y = x ++
     Action* action2 = new Action(2);
@@ -112,9 +104,7 @@ void TEST_ApplyAction::TestIncrementVariable()
     action2->expression = inc;
     action2->sourceVariables.append(x);
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QCOMPARE(errors.size(), 0);
 
@@ -148,9 +138,7 @@ void TEST_ApplyAction::TestArrayDirectDependency()
     action1->targetRoot = target1;
     action1->expression = new ExprNode(Number, "4");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // b = a[2] 2 *
     Action* action2 = new Action(2);
@@ -168,9 +156,7 @@ void TEST_ApplyAction::TestArrayDirectDependency()
     action2->sourceVariables.append(arr2);
     action2->sourceVariables.append(two);
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QCOMPARE(errors.size(), 0);
 
@@ -205,9 +191,7 @@ void TEST_ApplyAction::TestArrayGeneralDependency()
     action1->targetRoot = target1;
     action1->expression = new ExprNode(Number, "4");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // b = a[2] 2 *
     Action* action2 = new Action(2);
@@ -225,9 +209,7 @@ void TEST_ApplyAction::TestArrayGeneralDependency()
     action2->sourceVariables.append(arr2);
     action2->sourceVariables.append(two);
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QCOMPARE(errors.size(), 0);
 
@@ -261,9 +243,7 @@ void TEST_ApplyAction::TestErrorInvalidArrayDimension()
     action1->targetRoot = target1;
     action1->expression = new ExprNode(Number, "4");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // a[i][j] = 5 (2 измерения) - ОШИБКА
     Action* action2 = new Action(2);
@@ -279,9 +259,7 @@ void TEST_ApplyAction::TestErrorInvalidArrayDimension()
     action2->targetRoot = target2;
     action2->expression = new ExprNode(Number, "5");
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     bool found = false;
     for (const Error& e : errors) {
@@ -314,9 +292,7 @@ void TEST_ApplyAction::TestIncrementUninitializedVariable()
     action1->expression = inc;
     action1->sourceVariables.append(counter);
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // Нет зависимости (первое появление counter)
     QList<Action*> incoming = graph.getIncoming(action1);
@@ -341,9 +317,7 @@ void TEST_ApplyAction::TestSelfAssignment()
     action1->targetRoot = new ExprNode(Var, "x");
     action1->expression = new ExprNode(Number, "5");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // x = x 1 +
     Action* action2 = new Action(2);
@@ -356,9 +330,7 @@ void TEST_ApplyAction::TestSelfAssignment()
     action2->expression = plus;
     action2->sourceVariables.append(x);
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QList<Action*> incoming = graph.getIncoming(action2);
     QVERIFY(incoming.contains(action1));
@@ -390,9 +362,7 @@ void TEST_ApplyAction::TestArrayDifferentIndices()
     action1->targetRoot = target1;
     action1->expression = new ExprNode(Number, "4");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // a[3] = a[2] 1 +
     Action* action2 = new Action(2);
@@ -415,9 +385,7 @@ void TEST_ApplyAction::TestArrayDifferentIndices()
     action2->expression = plus;
     action2->sourceVariables.append(arr2);
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QList<Action*> incoming = graph.getIncoming(action2);
     QVERIFY(incoming.contains(action1));
@@ -450,9 +418,7 @@ void TEST_ApplyAction::TestUseUninitializedVariable()
     action1->expression = plus;
     action1->sourceVariables.append(a);
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // a не определена - зависимости нет
     QList<Action*> incoming = graph.getIncoming(action1);
@@ -476,9 +442,7 @@ void TEST_ApplyAction::TestIncrementExistingVariable()
     action1->targetRoot = new ExprNode(Var, "a");
     action1->expression = new ExprNode(Number, "5");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // b = a ++
     Action* action2 = new Action(2);
@@ -489,9 +453,7 @@ void TEST_ApplyAction::TestIncrementExistingVariable()
     action2->expression = inc;
     action2->sourceVariables.append(a);
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QList<Action*> incoming = graph.getIncoming(action2);
     QVERIFY(incoming.contains(action1));
@@ -523,9 +485,7 @@ void TEST_ApplyAction::TestReassignArrayElementConstant()
     action1->targetRoot = target1;
     action1->expression = new ExprNode(Number, "4");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // a[2] = 5
     Action* action2 = new Action(2);
@@ -537,9 +497,7 @@ void TEST_ApplyAction::TestReassignArrayElementConstant()
     action2->targetRoot = target2;
     action2->expression = new ExprNode(Number, "5");
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QCOMPARE(varTable["a"], action2);
 
@@ -568,9 +526,7 @@ void TEST_ApplyAction::TestReassignArrayElementVariable()
     ExprNode* iSrc1 = new ExprNode(Var, "i");
     action1->sourceVariables.append(iSrc1);
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // a[i] = i 1 +
     Action* action2 = new Action(2);
@@ -588,9 +544,7 @@ void TEST_ApplyAction::TestReassignArrayElementVariable()
     action2->expression = plus;
     action2->sourceVariables.append(iSrc2);
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QCOMPARE(varTable["a"], action2);
 
@@ -619,9 +573,7 @@ void TEST_ApplyAction::TestWriteFixedIndexAfterVariable()
     ExprNode* iSrc = new ExprNode(Var, "i");
     action1->sourceVariables.append(iSrc);
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // c = a[2]
     Action* action2 = new Action(2);
@@ -634,9 +586,7 @@ void TEST_ApplyAction::TestWriteFixedIndexAfterVariable()
     action2->expression = arr2;
     action2->sourceVariables.append(arr2);
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QList<Action*> incoming = graph.getIncoming(action2);
     QVERIFY(incoming.contains(action1));
@@ -668,18 +618,14 @@ void TEST_ApplyAction::TestMixedArrayAndScalar()
     action1->targetRoot = target1;
     action1->expression = new ExprNode(Number, "4");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // b = 5
     Action* action2 = new Action(2);
     action2->targetRoot = new ExprNode(Var, "b");
     action2->expression = new ExprNode(Number, "5");
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     // c = a[2] b +
     Action* action3 = new Action(3);
@@ -697,9 +643,7 @@ void TEST_ApplyAction::TestMixedArrayAndScalar()
     action3->sourceVariables.append(arr3);
     action3->sourceVariables.append(bSrc);
 
-    graph.applyAction(action3, action3->targetRoot,
-                      action3->sourceVariables, action3->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action3, varTable, errors);
 
     QList<Action*> incoming = graph.getIncoming(action3);
     QVERIFY(incoming.contains(action1));
@@ -734,9 +678,7 @@ void TEST_ApplyAction::TestSelfArrayAssignment()
     action1->targetRoot = target1;
     action1->expression = new ExprNode(Number, "4");
 
-    graph.applyAction(action1, action1->targetRoot,
-                      action1->sourceVariables, action1->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action1, varTable, errors);
 
     // a[2] = a[2] 1 +
     Action* action2 = new Action(2);
@@ -759,9 +701,7 @@ void TEST_ApplyAction::TestSelfArrayAssignment()
     action2->expression = plus;
     action2->sourceVariables.append(arr2);
 
-    graph.applyAction(action2, action2->targetRoot,
-                      action2->sourceVariables, action2->modifiedVariables,
-                      varTable, errors);
+    graph.applyAction(action2, varTable, errors);
 
     QList<Action*> incoming = graph.getIncoming(action2);
     QVERIFY(incoming.contains(action1));
@@ -790,9 +730,7 @@ void TEST_ApplyAction::TestComprehensive()
     parseActions(lines, actions, errors);
 
     for (Action* action : actions) {
-        graph.applyAction(action, action->targetRoot,
-                          action->sourceVariables, action->modifiedVariables,
-                          varTable, errors);
+        graph.applyAction(action, varTable, errors);
     }
 
     QCOMPARE(errors.size(), 0);
@@ -812,4 +750,3 @@ void TEST_ApplyAction::TestComprehensive()
 
     qDeleteAll(actions);
 }
-

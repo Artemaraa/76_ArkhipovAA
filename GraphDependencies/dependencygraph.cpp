@@ -32,28 +32,23 @@ void DependencyGraph::buildGraph(const QList<Action*>& actionsList, QMap<QString
         Action* action = actionsList[i];
         // Для каждого действия вызвать применение действия
         if (action != nullptr) {
-            applyAction(action,
-                        action->targetRoot,
-                        action->sourceVariables,
-                        action->modifiedVariables,
-                        varTable,
-                        errors);
+            applyAction(action, varTable, errors);
         }
     }
 }
 
 // Применение одного действия
-void DependencyGraph::applyAction(Action* currentAction,
-                                  ExprNode* targetRoot,
-                                  const QList<ExprNode*>& sourceVariables,
-                                  const QList<ExprNode*>& modifiedVariables,
-                                  QMap<QString, Action*>& varTable,
-                                  QSet<Error>& errors)
+void DependencyGraph::applyAction(Action* currentAction, QMap<QString, Action*>& varTable, QSet<Error>& errors)
 {
     // Если действие пусто, выйти
     if (currentAction == nullptr) {
         return;
     }
+    // Взять данные из самого действия
+    ExprNode* targetRoot = currentAction->targetRoot;
+    const QList<ExprNode*>& sourceVariables = currentAction->sourceVariables;
+    const QList<ExprNode*>& modifiedVariables = currentAction->modifiedVariables;
+
     // Узнать имя целевой переменной; если имя пустое - выйти (некорректная цель)
     const QString targetName = getArrayName(targetRoot);
     if (targetName.isEmpty()) {
@@ -106,7 +101,7 @@ void DependencyGraph::addEdge(Action* from, Action* to, DependencyType type)
 
     // Проверить список рёбер на дубликат (зависимость уже имеется)
     bool exists = false;
-    for (DependencyEdge* edge : edges) {
+    for (const DependencyEdge* edge : edges) {
         if (edge->from == from && edge->to == to) {
             exists = true;
             break;// дубликат найден, прекращаем поиск
