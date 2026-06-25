@@ -73,15 +73,6 @@ QString Error::generateErrorMessage() const
     case ExtraOperands:
         message = line + ": лишние операнды в выражении";
         break;
-    case UnclosedBracket:
-        message = line + ": незакрытая скобка '['";
-        break;
-    case ExtraClosingBracket:
-        message = line + ": лишняя закрывающая скобка ']'";
-        break;
-    case MissingArrayIndex:
-        message = line + ": отсутствует индекс массива";
-        break;
     case ArrayWithoutIndex:
         message = line + ": переменная '" + errorContext + "' (массив) используется без индекса";
         break;

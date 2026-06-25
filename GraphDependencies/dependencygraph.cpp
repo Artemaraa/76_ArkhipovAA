@@ -232,13 +232,13 @@ QString DependencyGraph::toDOT() const
     QString result = "digraph G {\n";
 
     // Для каждой вершины добавить строку: номер действия и подпись с исходной строкой
-    for (Action* action : actions) {
+    for (const Action* action : actions) {
         result += "    " + QString::number(action->number) +
                   " [label=\"" + action->originalLine + "\"];\n";
     }
 
     // Для каждого ребра добавить строку-стрелку "from -> to"
-    for (DependencyEdge* edge : edges) {
+    for (const DependencyEdge* edge : edges) {
         result += "    " + QString::number(edge->from->number) +
                   " -> " + QString::number(edge->to->number);
         // Если связь общая (General) - пометить её пунктиром

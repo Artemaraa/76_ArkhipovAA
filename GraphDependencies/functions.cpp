@@ -120,8 +120,12 @@ ExprNode* parseExpression(const QString& exprStr,
     if (stack.size() == 1) {
         // Если остался ровно один узел - это корень дерева
         result = stack.pop();
+    } else if (stack.isEmpty()) {
+        // Стек пуст - корня нет, зафиксировать ошибку
+        errors.insert(Error(ExtraOperands, lineNumber, 0, ""));
+        result = nullptr;
     } else {
-        // Если узлов больше одного - добавить ошибку
+       // Если узлов больше одного - добавить ошибку
         errors.insert(Error(ExtraOperands, lineNumber, 0, ""));
         // Взять нижний узел как корень
         result = stack.first();

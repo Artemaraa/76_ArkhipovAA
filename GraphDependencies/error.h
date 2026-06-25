@@ -33,9 +33,6 @@ enum ErrorType {
     NotEnoughOperands,        ///< оператору не хватило операндов в стеке
     UnaryOperandNotVariable,  ///< ++/-- применён не к переменной (напр. к числу)
     ExtraOperands,            ///< после разбора в стеке осталось > 1 узла
-    UnclosedBracket,          ///< незакрытая '['
-    ExtraClosingBracket,      ///< лишняя ']'
-    MissingArrayIndex,        ///< отсутствует индекс массива
     ArrayWithoutIndex,        ///< массив использован без индекса
     ScalarWithIndex,          ///< скаляр использован с индексом
     InvalidArrayDimension,    ///< у массива изменилась размерность
