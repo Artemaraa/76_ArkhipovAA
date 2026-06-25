@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>main.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/**
+ * @mainpage ÐÐ¾ÑÑÑÐ¾ÐµÐ½Ð¸Ðµ Ð³ÑÐ°ÑÐ° Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐµÐ¹ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ð¹
+ *
+ * @section intro ÐÐ°Ð·Ð½Ð°ÑÐµÐ½Ð¸Ðµ
+ * ÐÑÐ¾Ð³ÑÐ°Ð¼Ð¼Ð° ÑÑÑÐ¾Ð¸Ñ Ð¾ÑÐ¸ÐµÐ½ÑÐ¸ÑÐ¾Ð²Ð°Ð½Ð½ÑÐ¹ Ð³ÑÐ°Ñ Ð½ÐµÐ¿Ð¾ÑÑÐµÐ´ÑÑÐ²ÐµÐ½Ð½ÑÑ Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐµÐ¹
+ * Ð´ÐµÐ¹ÑÑÐ²Ð¸Ð¹ Ð¿Ð¾ Ð·Ð°Ð´Ð°Ð½Ð½Ð¾Ð¹ ÑÑÐ°ÑÑÐµ Ð²ÑÐ¿Ð¾Ð»Ð½ÐµÐ½Ð¸Ñ Ð² Ð¿Ð¾ÑÑÑÐ¸ÐºÑÐ½Ð¾Ð¹ Ð·Ð°Ð¿Ð¸ÑÐ¸ Ð¸ Ð²ÑÐ²Ð¾Ð´Ð¸Ñ
+ * ÑÐµÐ·ÑÐ»ÑÑÐ°Ñ Ð² ÑÐ¾ÑÐ¼Ð°ÑÐµ DOT (Graphviz).
+ *
+ * ÐÐµÐ¹ÑÑÐ²Ð¸Ðµ Ð·Ð°Ð²Ð¸ÑÐ¸Ñ Ð¾Ñ Ð´ÑÑÐ³Ð¾Ð³Ð¾, ÐµÑÐ»Ð¸ Ð¸ÑÐ¿Ð¾Ð»ÑÐ·ÑÐµÑ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ðµ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹
+ * (Ð¸Ð»Ð¸ ÑÐ»ÐµÐ¼ÐµÐ½ÑÐ° Ð¼Ð°ÑÑÐ¸Ð²Ð°), Ð¸Ð·Ð¼ÐµÐ½ÑÐ½Ð½Ð¾Ðµ Ð¿Ð¾ÑÐ»ÐµÐ´Ð½Ð¸Ð¼ Ð¿ÑÐµÐ´ÑÐµÑÑÐ²ÑÑÑÐ¸Ð¼ Ð´ÐµÐ¹ÑÑÐ²Ð¸ÐµÐ¼.
+ * ÐÐ°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐ¸ Ð¿Ð¾ Ð¼Ð°ÑÑÐ¸Ð²Ð°Ð¼ Ð±ÑÐ²Ð°ÑÑ Ð¿ÑÑÐ¼ÑÐ¼Ð¸ (ÑÐ¾ÑÐ½Ð¾Ðµ ÑÐ¾Ð²Ð¿Ð°Ð´ÐµÐ½Ð¸Ðµ Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð²)
+ * Ð¸ Ð¾Ð±ÑÐ¸Ð¼Ð¸ (Ð¸Ð½Ð´ÐµÐºÑ Ð·Ð°Ð´Ð°Ð½ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹, Ð¿Ð¾ÐºÐ°Ð·Ð°Ð½Ñ Ð¿ÑÐ½ÐºÑÐ¸ÑÐ¾Ð¼).
+ *
+ * @section usage ÐÐ°Ð¿ÑÑÐº
+ * @code
+ * GraphDependencies.exe input.txt output.dot
+ * @endcode
+ *
+ * @section example ÐÑÐ¸Ð¼ÐµÑ ÑÐ°Ð±Ð¾ÑÑ
+ *
+ * ÐÑÐ¾Ð´Ð½Ð¾Ð¹ ÑÐ°Ð¹Ð»:
+ * @code
+ * a = 5
+ * b = a 1 +
+ * c = a b *
+ * n i [] = a
+ * v = n i [] b +
+ * f = n 3 [] a -
+ * k = a ++
+ * privet = a k -
+ * @endcode
+ *
+ * ÐÑÑÐ¾Ð´Ð½Ð¾Ð¹ ÑÐ°Ð¹Ð» (DOT):
+ * @code
+ * digraph G {
+ *     1 [label="a = 5"];
+ *     2 [label="b = a 1 +"];
+ *     3 [label="c = a b *"];
+ *     4 [label="n i [] = a"];
+ *     5 [label="v = n i [] b +"];
+ *     6 [label="f = n 3 [] a -"];
+ *     7 [label="k = a ++"];
+ *     8 [label="privet = a k -"];
+ *     2 -&gt; 1;
+ *     3 -&gt; 1;
+ *     3 -&gt; 2;
+ *     4 -&gt; 1;
+ *     5 -&gt; 4;
+ *     5 -&gt; 2;
+ *     6 -&gt; 4 [style=dashed];
+ *     6 -&gt; 1;
+ *     7 -&gt; 1;
+ *     8 -&gt; 7;
+ * }
+ * @endcode
+ *
+ * ÐÐ¸Ð·ÑÐ°Ð»Ð¸Ð·Ð°ÑÐ¸Ñ Ð¿Ð¾Ð»ÑÑÐµÐ½Ð½Ð¾Ð³Ð¾ Ð³ÑÐ°ÑÐ°:
+ * @image html dot.png "ÐÑÐ°Ñ Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐµÐ¹ Ð´Ð»Ñ Ð¿ÑÐ¸Ð¼ÐµÑÐ°"
+ */
+#include &lt;QCoreApplication&gt;
+#include &lt;QDebug&gt;
+#include &lt;QFile&gt;
+#include &lt;QTextStream&gt;
+#include &lt;QSet&gt;
+
+#include "dependencygraph.h"
+#include "functions.h"
+
+// ÐÐµÑÐ°ÑÐ°ÐµÑ Ð²ÑÐµ Ð½Ð°ÐºÐ¾Ð¿Ð»ÐµÐ½Ð½ÑÐµ Ð¾ÑÐ¸Ð±ÐºÐ¸ Ð² ÐºÐ¾Ð½ÑÐ¾Ð»Ñ
+void printErrors(const QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð¹ Ð¾ÑÐ¸Ð±ÐºÐ¸ Ð¸Ð· Ð¼Ð½Ð¾Ð¶ÐµÑÑÐ²Ð° Ð²ÑÐ²ÐµÑÑÐ¸ ÐµÑ ÑÐµÐºÑÑÐ¾Ð²Ð¾Ðµ ÑÐ¾Ð¾Ð±ÑÐµÐ½Ð¸Ðµ
+<span style = "background-color:#dfd">    for (const Error&amp; err : errors) {
+        qDebug().noquote() &lt;&lt; err.generateErrorMessage();
+    }
+}</span>
+
+int main(int argc, char *argv[])
+<span style = "background-color:#dfd">{
+    QCoreApplication a(argc, argv);</span>
+
+    // ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ ÐºÐ¾Ð»Ð¸ÑÐµÑÑÐ²Ð¾ Ð°ÑÐ³ÑÐ¼ÐµÐ½ÑÐ¾Ð²: Ð¿ÑÑÑ Ðº Ð²ÑÐ¾Ð´Ð½Ð¾Ð¼Ñ Ð¸ Ð²ÑÑÐ¾Ð´Ð½Ð¾Ð¼Ñ ÑÐ°Ð¹Ð»Ð°Ð¼
+<span style = "background-color:#dfd">    if (argc &lt; 3) {
+        qDebug().noquote() &lt;&lt; "Usage: GraphDependencies.exe &lt;input.txt&gt; &lt;output.dot&gt;";
+        return 1;</span>
+    }
+
+<span style = "background-color:#dfd">    const QString inputFile  = argv[1];
+    const QString outputFile = argv[2];</span>
+
+<span style = "background-color:#dfd">    QStringList fileContent; // ÑÑÑÐ¾ÐºÐ¸ Ð²ÑÐ¾Ð´Ð½Ð¾Ð³Ð¾ ÑÐ°Ð¹Ð»Ð°
+    QSet&lt;Error&gt; errors; // Ð¼Ð½Ð¾Ð¶ÐµÑÑÐ²Ð¾ Ð¾ÑÐ¸Ð±Ð¾Ðº</span>
+
+    // ÐÑÐ¾ÑÐ¸ÑÐ°ÑÑ Ð²ÑÐ¾Ð´Ð½Ð¾Ð¹ ÑÐ°Ð¹Ð»; Ð¿ÑÐ¸ Ð¾ÑÐ¸Ð±ÐºÐµ ÑÑÐµÐ½Ð¸Ñ, Ð²ÑÐ²ÐµÑÑÐ¸ Ð¾ÑÐ¸Ð±ÐºÐ¸ Ð¸ Ð·Ð°Ð²ÐµÑÑÐ¸ÑÑ ÑÐ°Ð±Ð¾ÑÑ
+<span style = "background-color:#dfd">    if (!readFile(inputFile, fileContent, errors)) {
+        printErrors(errors);
+        return 1;</span>
+    }
+
+    // Ð Ð°Ð·Ð¾Ð±ÑÐ°ÑÑ ÑÑÑÐ¾ÐºÐ¸ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº Ð´ÐµÐ¹ÑÑÐ²Ð¸Ð¹
+<span style = "background-color:#dfd">    QList&lt;Action*&gt; actions;
+    parseActions(fileContent, actions, errors);</span>
+
+    // ÐÑÐ»Ð¸ Ð¿ÑÐ¸ ÑÐ°Ð·Ð±Ð¾ÑÐµ Ð¿Ð¾ÑÐ²Ð¸Ð»Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÐ¸ - Ð²ÑÐ²ÐµÑÑÐ¸ Ð¸Ñ, Ð¾ÑÐ²Ð¾Ð±Ð¾Ð´Ð¸ÑÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ Ð¸ Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">    if (!errors.isEmpty()) {
+        printErrors(errors);
+        qDeleteAll(actions);
+        return 1;</span>
+    }
+
+    // Ð¡Ð¾Ð·Ð´Ð°ÑÑ Ð³ÑÐ°Ñ Ð¸ ÑÐ°Ð±Ð»Ð¸ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ, Ð·Ð°Ð¿ÑÑÑÐ¸ÑÑ Ð¿Ð¾ÑÑÑÐ¾ÐµÐ½Ð¸Ðµ Ð³ÑÐ°ÑÐ°
+<span style = "background-color:#dfd">    DependencyGraph graph;
+    QMap&lt;QString, Action*&gt; varTable;
+    graph.buildGraph(actions, varTable, errors);</span>
+
+    // ÐÑÐ»Ð¸ Ð¿Ð¾ÑÐ²Ð¸Ð»Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÐ¸ ÑÑÐ°Ð¿Ð° Ð¿Ð¾ÑÑÑÐ¾ÐµÐ½Ð¸Ñ - Ð²ÑÐ²ÐµÑÑÐ¸ Ð¸Ñ, Ð¾ÑÐ²Ð¾Ð±Ð¾Ð´Ð¸ÑÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ Ð¸ Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">    if (!errors.isEmpty()) {
+        printErrors(errors);
+        qDeleteAll(actions);
+        return 1;</span>
+    }
+
+    // ÐÑÐºÑÑÑÑ Ð²ÑÑÐ¾Ð´Ð½Ð¾Ð¹ ÑÐ°Ð¹Ð»; ÐµÑÐ»Ð¸ Ð½Ðµ ÑÐ´Ð°Ð»Ð¾ÑÑ - Ð¾ÑÐ¸Ð±ÐºÐ° Ð¸ Ð²ÑÑÐ¾Ð´
+<span style = "background-color:#dfd">    QFile outFile(outputFile);
+    if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        errors.insert(Error(OutputFileCreateFail, 0, 0, outputFile));
+        printErrors(errors);
+        qDeleteAll(actions);
+        return 1;</span>
+    }
+
+    // Ð¡ÑÐ¾ÑÐ¼Ð¸ÑÐ¾Ð²Ð°ÑÑ DOT-ÑÐµÐºÑÑ Ð¸ Ð·Ð°Ð¿Ð¸ÑÐ°ÑÑ ÐµÐ³Ð¾ Ð² Ð²ÑÑÐ¾Ð´Ð½Ð¾Ð¹ ÑÐ°Ð¹Ð»
+<span style = "background-color:#dfd">    QTextStream out(&amp;outFile);
+    out &lt;&lt; graph.toDOT();
+    outFile.close();</span>
+
+    // Ð¡Ð¾Ð¾Ð±ÑÐ¸ÑÑ Ð¾Ð± ÑÑÐ¿ÐµÑÐµ, Ð¾ÑÐ²Ð¾Ð±Ð¾Ð´Ð¸ÑÑ Ð¿Ð°Ð¼ÑÑÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ð¹ Ð¸ Ð·Ð°Ð²ÐµÑÑÐ¸ÑÑ ÑÐ°Ð±Ð¾ÑÑ
+<span style = "background-color:#dfd">    qDebug().noquote() &lt;&lt; "Graph saved to" &lt;&lt; outputFile;
+    qDeleteAll(actions);
+    return 0;
+}</span></pre>
+	</body>
+</html>

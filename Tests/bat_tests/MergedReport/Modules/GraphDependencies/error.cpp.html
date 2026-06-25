@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>error.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+#include "error.h"
+
+// ÐÐ¾Ð½ÑÑÑÑÐºÑÐ¾Ñ Ð¿Ð¾ ÑÐ¼Ð¾Ð»ÑÐ°Ð½Ð¸Ñ: Ð¾ÑÐ¸Ð±ÐºÐ° Ð¾ÑÑÑÑÑÑÐ²ÑÐµÑ, Ð¿Ð¾Ð·Ð¸ÑÐ¸Ð¸ Ð¾Ð±Ð½ÑÐ»ÐµÐ½Ñ
+Error::Error()
+<span style = "background-color:#dfd">    : type(NoError), lineNumber(0), columnNumber(0)
+{
+}</span>
+
+// ÐÐ¾Ð½ÑÑÑÑÐºÑÐ¾Ñ Ñ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ°Ð¼Ð¸: Ð·Ð°Ð¿Ð¾Ð¼Ð¸Ð½Ð°ÐµÐ¼ ÑÐ¸Ð¿, Ð¿Ð¾Ð·Ð¸ÑÐ¸Ñ Ð¸ ÐºÐ¾Ð½ÑÐµÐºÑÑ Ð¾ÑÐ¸Ð±ÐºÐ¸
+Error::Error(ErrorType t, int line, int col, const QString&amp; context)
+<span style = "background-color:#dfd">    : type(t), lineNumber(line), columnNumber(col), errorContext(context)
+{
+}</span>
+
+// ÐÐµÑÐ½ÑÑÑ ÑÐ¸Ð¿ Ð¾ÑÐ¸Ð±ÐºÐ¸
+ErrorType Error::getTypeError() const
+<span style = "background-color:#fdd">{
+    return type;
+}</span>
+
+//  Ð¤Ð¾ÑÐ¼Ð¸ÑÐ¾Ð²Ð°Ð½Ð¸Ðµ ÑÐµÐºÑÑÐ¾Ð²Ð¾Ð³Ð¾ ÑÐ¾Ð¾Ð±ÑÐµÐ½Ð¸Ñ Ð¾Ð± Ð¾ÑÐ¸Ð±ÐºÐµ
+QString Error::generateErrorMessage() const
+<span style = "background-color:#dfd">{</span>
+    // ÐÐ°Ð³Ð¾ÑÐ¾Ð²ÐºÐ¸ Ð¿ÑÐµÑÐ¸ÐºÑÐ¾Ð²:"Ð¡ÑÑÐ¾ÐºÐ° N, ÑÑÐ¾Ð»Ð±ÐµÑ M"
+<span style = "background-color:#dfd">    const QString line = "Ð¡ÑÑÐ¾ÐºÐ° " + QString::number(lineNumber);
+    const QString lineCol = line + ", ÑÑÐ¾Ð»Ð±ÐµÑ " + QString::number(columnNumber);</span>
+
+    // ÐÑÐ¾Ð³Ð¾Ð²Ð¾Ðµ ÑÐ¾Ð¾Ð±ÑÐµÐ½Ð¸Ðµ
+<span style = "background-color:#dfd">    QString message;</span>
+
+    // ÐÑÐ±ÑÐ°ÑÑ ÑÐµÐºÑÑ ÑÐ¾Ð¾Ð±ÑÐµÐ½Ð¸Ñ Ð² Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐ¸ Ð¾Ñ ÑÐ¸Ð¿Ð° Ð¾ÑÐ¸Ð±ÐºÐ¸
+<span style = "background-color:#dfd">    switch (type) {</span>
+    case InputFileNotFound:
+<span style = "background-color:#dfd">        message = "ÐÐµÐ²ÐµÑÐ½Ð¾ ÑÐºÐ°Ð·Ð°Ð½ ÑÐ°Ð¹Ð» Ñ Ð²ÑÐ¾Ð´Ð½ÑÐ¼Ð¸ Ð´Ð°Ð½Ð½ÑÐ¼Ð¸. ÐÐ¾Ð·Ð¼Ð¾Ð¶Ð½Ð¾, ÑÐ°Ð¹Ð» Ð½Ðµ ÑÑÑÐµÑÑÐ²ÑÐµÑ";
+        break;</span>
+    case OutputFileCreateFail:
+<span style = "background-color:#dfd">        message = "ÐÐµÐ²ÐµÑÐ½Ð¾ ÑÐºÐ°Ð·Ð°Ð½ ÑÐ°Ð¹Ð» Ð´Ð»Ñ Ð²ÑÑÐ¾Ð´Ð½ÑÑ Ð´Ð°Ð½Ð½ÑÑ. "</span>
+                  "ÐÐ¾Ð·Ð¼Ð¾Ð¶Ð½Ð¾, ÑÐºÐ°Ð·Ð°Ð½Ð½Ð¾Ð³Ð¾ ÑÐ°ÑÐ¿Ð¾Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ Ð½Ðµ ÑÑÑÐµÑÑÐ²ÑÐµÑ Ð¸Ð»Ð¸ Ð½ÐµÑ Ð¿ÑÐ°Ð² Ð½Ð° Ð·Ð°Ð¿Ð¸ÑÑ.";
+<span style = "background-color:#dfd">        break;</span>
+    case EmptyInputFile:
+<span style = "background-color:#dfd">        message = "ÐÑÐ¸Ð±ÐºÐ°: Ð²ÑÐ¾Ð´Ð½Ð¾Ð¹ ÑÐ°Ð¹Ð» Ð¿ÑÑÑ";
+        break;</span>
+    case NoEqualSign:
+<span style = "background-color:#dfd">        message = line + ": Ð¾ÑÑÑÑÑÑÐ²ÑÐµÑ Ð·Ð½Ð°Ðº '='";
+        break;</span>
+    case EmptyLeftPart:
+<span style = "background-color:#dfd">        message = line + ": Ð¿ÑÑÑÐ°Ñ Ð»ÐµÐ²Ð°Ñ ÑÐ°ÑÑÑ";
+        break;</span>
+    case EmptyExpression:
+<span style = "background-color:#dfd">        message = line + ": Ð¿ÑÑÑÐ¾Ðµ Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸Ðµ";
+        break;</span>
+    case InvalidVariableName:
+<span style = "background-color:#dfd">        message = lineCol + ": Ð¸Ð¼Ñ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹ Ð½Ðµ ÑÐ¾Ð¾ÑÐ²ÐµÑÑÑÐ²ÑÐµÑ ÑÐ¾ÑÐ¼Ð°ÑÑ";
+        break;</span>
+    case VariableNameTooLong:
+<span style = "background-color:#dfd">        message = line + ": Ð¸Ð¼Ñ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹ Ð´Ð»Ð¸Ð½Ð½ÐµÐµ 255 ÑÐ¸Ð¼Ð²Ð¾Ð»Ð¾Ð²";
+        break;</span>
+    case UnsupportedOperator:
+<span style = "background-color:#dfd">        message = lineCol + ": Ð½ÐµÐ¸Ð·Ð²ÐµÑÑÐ½ÑÐ¹ ÑÐ¾ÐºÐµÐ½";
+        break;</span>
+    case NumberOutOfRange:
+<span style = "background-color:#dfd">        message = lineCol + ": ÐºÐ¾Ð½ÑÑÐ°Ð½ÑÐ° Ð²Ð½Ðµ Ð´Ð¾Ð¿ÑÑÑÐ¸Ð¼Ð¾Ð³Ð¾ Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½Ð°";
+        break;</span>
+    case InvalidNumberFormat:
+<span style = "background-color:#dfd">        message = lineCol + ": ÐºÐ¾Ð½ÑÑÐ°Ð½ÑÐ° Ð´Ð¾Ð»Ð¶Ð½Ð° Ð±ÑÑÑ ÑÐµÐ»ÑÐ¼ ÑÐ¸ÑÐ»Ð¾Ð¼";
+        break;</span>
+    case NotEnoughOperands:
+<span style = "background-color:#dfd">        message = line + ": Ð½ÐµÐ´Ð¾ÑÑÐ°ÑÐ¾ÑÐ½Ð¾ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ð¾Ð² Ð´Ð»Ñ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ° Ð² ÑÑÐ¾Ð»Ð±ÑÐµ " + QString::number(columnNumber);
+        break;</span>
+    case UnaryOperandNotVariable:
+<span style = "background-color:#dfd">        message = line + ": Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÑ ++/-- Ð¿ÑÐ¸Ð¼ÐµÐ½Ð¸Ð¼Ñ ÑÐ¾Ð»ÑÐºÐ¾ Ðº Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÐ¼";
+        break;</span>
+    case ExtraOperands:
+<span style = "background-color:#dfd">        message = line + ": Ð»Ð¸ÑÐ½Ð¸Ðµ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ñ Ð² Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸Ð¸";
+        break;</span>
+    case ArrayWithoutIndex:
+<span style = "background-color:#dfd">        message = line + ": Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ '" + errorContext + "' (Ð¼Ð°ÑÑÐ¸Ð²) Ð¸ÑÐ¿Ð¾Ð»ÑÐ·ÑÐµÑÑÑ Ð±ÐµÐ· Ð¸Ð½Ð´ÐµÐºÑÐ°";
+        break;</span>
+    case ScalarWithIndex:
+<span style = "background-color:#dfd">        message = line + ": Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ '" + errorContext + "' (ÑÐºÐ°Ð»ÑÑ) Ð¸ÑÐ¿Ð¾Ð»ÑÐ·ÑÐµÑÑÑ Ñ Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð¼";
+        break;</span>
+    case InvalidArrayDimension:
+<span style = "background-color:#dfd">        message = line + ": Ð½ÐµÐ²ÐµÑÐ½Ð°Ñ ÑÐ°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÑ Ð¼Ð°ÑÑÐ¸Ð²Ð° '" + errorContext + "'";
+        break;</span>
+    case NestingDepthExceeded:
+<span style = "background-color:#dfd">        message = line + ": Ð³Ð»ÑÐ±Ð¸Ð½Ð° Ð²Ð»Ð¾Ð¶ÐµÐ½Ð½Ð¾ÑÑÐ¸ Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð² Ð¿ÑÐµÐ²ÑÑÐ°ÐµÑ 5";
+        break;</span>
+    case TooManyActions:
+<span style = "background-color:#fdd">        message = "Ð¢ÑÐ°ÑÑÐ° ÑÐ¾Ð´ÐµÑÐ¶Ð¸Ñ Ð±Ð¾Ð»ÐµÐµ 10 000 Ð´ÐµÐ¹ÑÑÐ²Ð¸Ð¹, ÑÑÐ¾ Ð¿ÑÐµÐ²ÑÑÐ°ÐµÑ Ð´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÐ¹ Ð»Ð¸Ð¼Ð¸Ñ.";</span>
+        break;
+    }
+    // ÐÐµÑÐ½ÑÑÑ ÑÑÐ¾ÑÐ¼Ð¸ÑÐ¾Ð²Ð°Ð½Ð½Ð¾Ðµ ÑÐ¾Ð¾Ð±ÑÐµÐ½Ð¸Ðµ
+<span style = "background-color:#dfd">    return message;
+}</span>
+
+
+// Ð¡ÑÐ°Ð²Ð½ÐµÐ½Ð¸Ðµ Ð´Ð²ÑÑ Ð¾ÑÐ¸Ð±Ð¾Ðº: ÑÐ°Ð²Ð½Ñ, ÐµÑÐ»Ð¸ ÑÐ¾Ð²Ð¿Ð°Ð´Ð°ÑÑ Ð²ÑÐµ Ð¿Ð¾Ð»Ñ
+bool operator==(const Error&amp; left, const Error&amp; right)
+<span style = "background-color:#fdd">{
+    return left.type == right.type &amp;&amp;</span>
+           left.lineNumber == right.lineNumber &amp;&amp;
+           left.columnNumber == right.columnNumber &amp;&amp;
+           left.errorContext == right.errorContext;
+<span style = "background-color:#fdd">}</span>
+
+// Ð¥ÐµÑ Ð¾ÑÐ¸Ð±ÐºÐ¸: Ð¾Ð±ÑÐµÐ´Ð¸Ð½ÑÐµÐ¼ ÑÐµÑÐ¸ Ð²ÑÐµÑ Ð¿Ð¾Ð»ÐµÐ¹ ÑÐµÑÐµÐ· XOR
+uint qHash(const Error&amp; key, uint seed)
+<span style = "background-color:#dfd">{
+    return qHash(key.type, seed) ^</span>
+           qHash(key.lineNumber, seed) ^
+           qHash(key.columnNumber, seed) ^
+           qHash(key.errorContext, seed);
+<span style = "background-color:#dfd">}</span></pre>
+	</body>
+</html>

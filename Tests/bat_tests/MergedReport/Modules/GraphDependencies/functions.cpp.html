@@ -1,0 +1,498 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>functions.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+#include "functions.h"
+#include &lt;QFile&gt;
+#include &lt;QTextStream&gt;
+
+// Ð Ð°Ð·Ð±Ð¾Ñ Ð²ÑÐµÑ ÑÑÑÐ¾Ðº
+void parseActions(const QStringList&amp; fileContent, QList&lt;Action*&gt;&amp; actions, QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° Ð¿ÑÑÑÐ¾ÑÑ ÑÐ°Ð¹Ð»Ð°: ÐµÑÑÑ Ð»Ð¸ ÑÐ¾ÑÑ Ð¾Ð´Ð½Ð° Ð½ÐµÐ¿ÑÑÑÐ°Ñ (Ð¿Ð¾ÑÐ»Ðµ Ð¾Ð±ÑÐµÐ·ÐºÐ¸) ÑÑÑÐ¾ÐºÐ°
+<span style = "background-color:#dfd">    bool hasContent = false;
+    for (int i = 0; i &lt; fileContent.size(); i++) {
+        if (!fileContent[i].trimmed().isEmpty()) {
+            hasContent = true;
+            break;</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+    // ÐÑÐ»Ð¸ ÑÐ¾Ð´ÐµÑÐ¶Ð¸Ð¼Ð¾Ð³Ð¾ Ð½ÐµÑ - Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ Ð¸ Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">    if (!hasContent) {
+        errors.insert(Error(EmptyInputFile, 0, 0, ""));
+        return;</span>
+    }
+
+    // ÐÐ±Ð½ÑÐ»Ð¸ÑÑ ÑÑÐµÑÑÐ¸Ðº ÑÑÑÐ¾Ðº
+<span style = "background-color:#dfd">    int lineNum = 0;</span>
+    // ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸
+<span style = "background-color:#dfd">    for (int i = 0; i &lt; fileContent.size(); i++) {</span>
+        // Ð£Ð²ÐµÐ»Ð¸ÑÐ¸ÑÑ ÑÑÑÑÑÐ¸Ðº ÑÑÑÐ¾Ðº
+<span style = "background-color:#dfd">        lineNum++;</span>
+        // ÐÐµÑÐµÐ´Ð°ÑÑ ÑÑÑÐ¾ÐºÑ Ð² ÑÐ°Ð·Ð±Ð¾Ñ (Ð¿ÑÑÑÑÐµ ÑÑÑÐ¾ÐºÐ¸ Ð¾ÑÑÐµÑÑÑÑ Ð²Ð½ÑÑÑÐ¸ parseSingleLine)
+<span style = "background-color:#dfd">        parseSingleLine(fileContent[i], lineNum, actions, errors);
+    }</span>
+    // ÐÑÐ»Ð¸ ÐºÐ¾Ð»Ð¸ÑÐµÑÑÐ²Ð¾ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ð¹ Ð¿ÑÐµÐ²ÑÑÐ¸Ð»Ð¾ Ð»Ð¸Ð¼Ð¸Ñ =&gt; Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#dfd">    if (actions.size() &gt; MAX_ACTIONS) {</span>
+<span style = "background-color:#fdd">        errors.insert(Error(TooManyActions, 0, 0, ""));</span>
+    }
+
+<span style = "background-color:#dfd">}</span>
+
+// Ð Ð°Ð·Ð±Ð¾Ñ Ð¾Ð´Ð½Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸ ÑÑÐ°ÑÑÑ Ð² Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ
+void parseSingleLine(const QString&amp; rawLine, int lineNumber, QList&lt;Action*&gt;&amp; actions, QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // ÐÐ±ÑÐµÐ·Ð°ÑÑ Ð¿ÑÐ¾Ð±ÐµÐ»Ñ Ð¿Ð¾ ÐºÑÐ°ÑÐ¼
+<span style = "background-color:#dfd">    const QString trimmedLine = rawLine.trimmed();</span>
+    // ÐÑÑÑÐ°Ñ ÑÑÑÐ¾ÐºÐ° - Ð½Ðµ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ Ð¸ Ð½Ðµ Ð¾ÑÐ¸Ð±ÐºÐ°, Ð¿ÑÐ¾ÑÑÐ¾ Ð¿ÑÐ¾Ð¿ÑÑÑÐ¸ÑÑ
+<span style = "background-color:#dfd">    if (trimmedLine.isEmpty()) {
+        return;</span>
+    }
+    // ÐÐ°Ð¹ÑÐ¸ Ð·Ð½Ð°Ðº ÑÐ°Ð²ÐµÐ½ÑÑÐ²Ð°
+<span style = "background-color:#dfd">    const int eqPos = trimmedLine.indexOf('=');</span>
+    // ÐÑÐ»Ð¸ Ð·Ð½Ð°ÐºÐ° Ð½ÐµÑ, Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ Ð¸ Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">    if (eqPos == -1) {
+        errors.insert(Error(NoEqualSign, lineNumber, 0, trimmedLine));
+        return;</span>
+    }
+
+    // Ð Ð°Ð·Ð´ÐµÐ»Ð¸ÑÑ ÑÑÑÐ¾ÐºÑ Ð½Ð° ÑÐ°ÑÑÐ¸: Ð»ÐµÐ²ÑÑ (Ð´Ð¾ ÑÐ°Ð²Ð½Ð¾) Ð¸ Ð¿ÑÐ°Ð²ÑÑ, ÑÐ±ÑÐ°ÑÑ Ð¿ÑÐ¾Ð±ÐµÐ»Ñ Ð¿Ð¾ ÐºÑÐ°ÑÐ¼
+<span style = "background-color:#dfd">    const QString leftPart  = trimmedLine.left(eqPos).trimmed();
+    const QString rightPart = trimmedLine.mid(eqPos + 1).trimmed();</span>
+
+<span style = "background-color:#dfd">    bool hasValidationError = false;</span>
+    // ÐÑÐ»Ð¸ Ð»ÐµÐ²Ð°Ñ ÑÐ°ÑÑÑ Ð¿ÑÑÑÐ°, Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#dfd">    if (leftPart.isEmpty()) {
+        errors.insert(Error(EmptyLeftPart, lineNumber, 0, ""));
+        hasValidationError = true;</span>
+    }
+    // ÐÑÐ»Ð¸ Ð¿ÑÐ°Ð²Ð°Ñ ÑÐ°ÑÑÑ Ð¿ÑÑÑÐ°, Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#dfd">    if (rightPart.isEmpty()) {
+        errors.insert(Error(EmptyExpression, lineNumber, 0, ""));
+        hasValidationError = true;</span>
+    }
+    // ÐÑÐ¸ Ð»ÑÐ±Ð¾Ð¹ Ð¸Ð· ÑÑÐ¸Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ Ð½Ðµ ÑÐ¾Ð·Ð´Ð°ÑÑÑÑ, Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">    if (hasValidationError) {
+        return;</span>
+    }
+
+    // Ð¡Ð¾Ð·Ð´Ð°ÑÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ Ñ Ð½Ð¾Ð¼ÐµÑÐ¾Ð¼ ÑÑÑÐ¾ÐºÐ¸
+<span style = "background-color:#dfd">    Action* action = new Action(lineNumber);</span>
+    // Ð¡Ð¾ÑÑÐ°Ð½Ð¸ÑÑ Ð¸ÑÑÐ¾Ð´Ð½ÑÐ¹ ÑÐµÐºÑÑ ÑÑÑÐ¾ÐºÐ¸
+<span style = "background-color:#dfd">    action-&gt;originalLine = trimmedLine;</span>
+
+    // Ð Ð°Ð·Ð¾Ð±ÑÐ°ÑÑ Ð»ÐµÐ²ÑÑ ÑÐ°ÑÑÑ Ð² Ð´ÐµÑÐµÐ²Ð¾ (targetRoot)(ÑÐ¿Ð¸ÑÐºÐ¸ Ð¸ÑÑÐ¾ÑÐ½Ð¸ÐºÐ¾Ð²/Ð¸Ð·Ð¼ÐµÐ½ÑÐµÐ¼ÑÑ Ð´Ð»Ñ Ð½ÐµÑ Ð½Ðµ Ð½ÑÐ¶Ð½Ñ)
+<span style = "background-color:#dfd">    QList&lt;ExprNode*&gt; leftSources;
+    QList&lt;ExprNode*&gt; leftModified;
+    action-&gt;targetRoot = parseExpression(leftPart, leftSources, leftModified, lineNumber, errors);</span>
+
+    // Ð Ð°Ð·Ð¾Ð±ÑÐ°ÑÑ Ð¿ÑÐ°Ð²ÑÑ ÑÐ°ÑÑÑ Ð² Ð´ÐµÑÐµÐ²Ð¾ (expression), Ð¿ÐµÑÐµÐ´Ð°Ð² ÑÐ¿Ð¸ÑÐºÐ¸ Ð¸ÑÑÐ¾ÑÐ½Ð¸ÐºÐ¾Ð² Ð¸ Ð¸Ð·Ð¼ÐµÐ½ÑÐµÐ¼ÑÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ
+<span style = "background-color:#dfd">    action-&gt;expression = parseExpression(rightPart, action-&gt;sourceVariables, action-&gt;modifiedVariables, lineNumber, errors);</span>
+
+    // ÐÑÐ»Ð¸ Ð¾Ð±Ð° Ð´ÐµÑÐµÐ²Ð° Ð¿Ð¾ÑÑÑÐ¾ÐµÐ½Ñ, Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº, Ð¸Ð½Ð°ÑÐµ ÑÐ´Ð°Ð»Ð¸ÑÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ
+<span style = "background-color:#dfd">    if (action-&gt;targetRoot != nullptr &amp;&amp; action-&gt;expression != nullptr) {
+        actions.append(action);
+    } else {</span>
+<span style = "background-color:#fdd">        delete action;</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+// ÐÐ¾ÑÑÑÐ¾ÐµÐ½Ð¸Ðµ Ð´ÐµÑÐµÐ²Ð° Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸Ñ Ð¸Ð· Ð¿Ð¾ÑÑÑÐ¸ÐºÑÐ½Ð¾Ð¹ ÑÐ¾ÑÐ¼Ñ
+ExprNode* parseExpression(const QString&amp; exprStr,
+                          QList&lt;ExprNode*&gt;&amp; sources,
+                          QList&lt;ExprNode*&gt;&amp; modified,
+                          int lineNumber,
+                          QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // Ð Ð°Ð·Ð±Ð¸ÑÑ ÑÐµÐºÑÑ Ð¿Ð¾ Ð¿ÑÐ¾Ð±ÐµÐ»Ð°Ð¼
+<span style = "background-color:#dfd">    const QStringList tokens = exprStr.split(' ', Qt::SkipEmptyParts);</span>
+    // ÐÑÐ»Ð¸ ÑÐ¾ÐºÐµÐ½Ð¾Ð² Ð½ÐµÑ, Ð²ÐµÑÐ½ÑÑÑ Ð¿ÑÑÑÐ¾Ð¹ ÑÐºÐ°Ð·Ð°ÑÐµÐ»Ñ
+<span style = "background-color:#dfd">    if (tokens.isEmpty()){</span>
+<span style = "background-color:#fdd">        return nullptr;</span>
+    }
+    // Ð¨Ð°Ð±Ð»Ð¾Ð½ ÑÐµÐ»Ð¾Ð³Ð¾ ÑÐ¸ÑÐ»Ð° Ð¸ Ð¸Ð¼ÐµÐ½Ð¸ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹
+<span style = "background-color:#dfd">    const QRegularExpression numR("^-?\\d+$");
+    const QRegularExpression varR("^[a-zA-Z][a-zA-Z0-9]*$");</span>
+    // ÐÐ°Ð²ÐµÑÑÐ¸ Ð¿ÑÑÑÐ¾Ð¹ ÑÑÐµÐº ÑÐ·Ð»Ð¾Ð²
+<span style = "background-color:#dfd">    QStack&lt;ExprNode*&gt; stack;</span>
+    // ÐÐ°Ð¶Ð´ÑÐ¹ ÑÐ¾ÐºÐµÐ½ ÑÐ°Ð·Ð¾Ð±ÑÐ°ÑÑ
+<span style = "background-color:#dfd">    for (int i = 0; i &lt; tokens.size(); ++i) {
+        parseSingleToken(tokens[i], stack, lineNumber, i + 1, numR, varR, errors);
+    }</span>
+    // ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ ÑÑÐµÐº
+<span style = "background-color:#dfd">    ExprNode* result = nullptr;
+    if (stack.size() == 1) {</span>
+        // ÐÑÐ»Ð¸ Ð¾ÑÑÐ°Ð»ÑÑ ÑÐ¾Ð²Ð½Ð¾ Ð¾Ð´Ð¸Ð½ ÑÐ·ÐµÐ» - ÑÑÐ¾ ÐºÐ¾ÑÐµÐ½Ñ Ð´ÐµÑÐµÐ²Ð°
+<span style = "background-color:#dfd">        result = stack.pop();
+    } else if (stack.isEmpty()) {</span>
+        // Ð¡ÑÐµÐº Ð¿ÑÑÑ - ÐºÐ¾ÑÐ½Ñ Ð½ÐµÑ, Ð·Ð°ÑÐ¸ÐºÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#fdd">        errors.insert(Error(ExtraOperands, lineNumber, 0, ""));
+        result = nullptr;
+    } else {</span>
+        // ÐÑÐ»Ð¸ ÑÐ·Ð»Ð¾Ð² Ð±Ð¾Ð»ÑÑÐµ Ð¾Ð´Ð½Ð¾Ð³Ð¾ - Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#dfd">        errors.insert(Error(ExtraOperands, lineNumber, 0, ""));</span>
+        // ÐÐ·ÑÑÑ Ð½Ð¸Ð¶Ð½Ð¸Ð¹ ÑÐ·ÐµÐ» ÐºÐ°Ðº ÐºÐ¾ÑÐµÐ½Ñ
+<span style = "background-color:#dfd">        result = stack.first();</span>
+        // ÐÑÑÐ°Ð»ÑÐ½ÑÐµ Ð´ÐµÑÐµÐ²ÑÑ Ð¾ÑÐ²Ð¾Ð±Ð¾Ð´Ð¸ÑÑ
+<span style = "background-color:#dfd">        for (ExprNode* node : stack) {
+            if (node != result) {
+                delete node;</span>
+            }
+<span style = "background-color:#dfd">        }</span>
+    }
+    // Ð¡Ð¾Ð±ÑÐ°ÑÑ Ð¿ÑÐ¾ÑÐ¸ÑÐ°Ð½Ð½ÑÐµ Ð¸ Ð¸Ð·Ð¼ÐµÐ½ÑÐµÐ¼ÑÐµ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÐµ
+<span style = "background-color:#dfd">    collectSources(result, sources);
+    collectModified(result, modified);</span>
+    // ÐÐµÑÐ½ÑÑÑ ÐºÐ¾ÑÐµÐ½Ñ Ð´ÐµÑÐµÐ²Ð°
+<span style = "background-color:#dfd">    return result;
+}</span>
+
+// ÑÐ·Ð»-Ð·Ð°Ð³Ð»ÑÑÐºÐ°
+ExprNode* makeStubNode()
+<span style = "background-color:#dfd">{</span>
+    // Ð¡Ð¾Ð·Ð´Ð°ÑÑ Ð¸ Ð²ÐµÑÐ½ÑÑÑ ÑÐ·ÐµÐ» ÑÐ¸Ð¿Ð° Number ÑÐ¾ Ð·Ð½Ð°ÑÐµÐ½Ð¸ÐµÐ¼ 0
+<span style = "background-color:#dfd">    return new ExprNode(Number, "0");
+}</span>
+
+// ÐÑÐ¾Ð²ÐµÑÐºÐ°: Ð±Ð¸Ð½Ð°ÑÐ½ÑÐ¹ Ð»Ð¸ ÑÑÐ¾ Ð¾Ð¿ÐµÑÐ°ÑÐ¾Ñ (+ - * /)
+bool isBinaryOperator(const QString&amp; token)
+<span style = "background-color:#dfd">{
+    return token == "+" || token == "-" || token == "*" || token == "/";
+}</span>
+
+// ÐÐ±ÑÐ°Ð±Ð¾ÑÐºÐ° ÑÐ¾ÐºÐµÐ½Ð°-ÑÐ¸ÑÐ»Ð°: ÑÐ·ÐµÐ»-ÑÐ¸ÑÐ»Ð¾ Ð¸Ð»Ð¸ Ð¾ÑÐ¸Ð±ÐºÐ° Ð²ÑÑÐ¾Ð´Ð° Ð·Ð° Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½
+void handleNumberToken(const QString&amp; token, QStack&lt;ExprNode*&gt;&amp; stack,
+                       int lineNumber, int tokenIndex, QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{
+    bool ok = false;
+    (void)token.toInt(&amp;ok);
+    if (!ok) {</span>
+        // Ð§Ð¸ÑÐ»Ð¾ Ð½Ðµ Ð¿Ð¾Ð¼ÐµÑÐ°ÐµÑÑÑ Ð² Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½ int
+<span style = "background-color:#dfd">        errors.insert(Error(NumberOutOfRange, lineNumber, tokenIndex, token));
+        stack.push(makeStubNode());
+    } else {</span>
+        // ÐÐ¾ÑÑÐµÐºÑÐ½Ð¾Ðµ ÑÐ¸ÑÐ»Ð¾
+<span style = "background-color:#dfd">        stack.push(new ExprNode(Number, token));</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+// ÐÐ±ÑÐ°Ð±Ð¾ÑÐºÐ° ÑÐ¾ÐºÐµÐ½Ð°-Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹: ÑÐ·ÐµÐ»-Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ Ð¸Ð»Ð¸ ÑÐ»Ð¸ÑÐºÐ¾Ð¼ Ð´Ð»Ð¸Ð½Ð½Ð¾Ðµ Ð¸Ð¼Ñ
+void handleVariableToken(const QString&amp; token, QStack&lt;ExprNode*&gt;&amp; stack,
+                         int lineNumber, int tokenIndex, QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{
+    if (token.length() &gt; MAX_VAR_LEN) {</span>
+        // ÐÐ¼Ñ Ð´Ð»Ð¸Ð½Ð½ÐµÐµ Ð´Ð¾Ð¿ÑÑÑÐ¸Ð¼Ð¾Ð³Ð¾
+<span style = "background-color:#dfd">        errors.insert(Error(VariableNameTooLong, lineNumber, tokenIndex, token));
+        stack.push(makeStubNode());
+    } else {</span>
+        // ÐÐ¾ÑÑÐµÐºÑÐ½Ð¾Ðµ Ð¸Ð¼Ñ
+<span style = "background-color:#dfd">        stack.push(new ExprNode(Var, token));</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+// ÐÐ»Ð°ÑÑÐ¸ÑÐ¸ÐºÐ°ÑÐ¸Ñ Ð½ÐµÐºÐ¾ÑÑÐµÐºÑÐ½Ð¾Ð³Ð¾ ÑÐ¾ÐºÐµÐ½Ð°: ÑÐ¾ÑÐ½ÑÐ¹ ÑÐ¸Ð¿ Ð¾ÑÐ¸Ð±ÐºÐ¸
+ErrorType classifyInvalidToken(const QString&amp; token)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÑÑÐ¾Ð¹ ÑÐ¾ÐºÐµÐ½ - Ð½ÐµÐ¸Ð·Ð²ÐµÑÑÐ½ÑÐ¹ Ð¾Ð¿ÐµÑÐ°ÑÐ¾Ñ
+<span style = "background-color:#dfd">    if (token.isEmpty()) {</span>
+<span style = "background-color:#fdd">        return UnsupportedOperator;</span>
+    }
+<span style = "background-color:#dfd">    const QChar firstChar = token[0];</span>
+    // ÐÐ¿ÑÐµÐ´ÐµÐ»Ð¸ÑÑ, Ð¿Ð¾ÑÐ¾Ð¶ Ð»Ð¸ ÑÐ¾ÐºÐµÐ½ Ð½Ð° ÑÐ¸ÑÐ»Ð¾
+<span style = "background-color:#dfd">    const bool looksNumeric = firstChar.isDigit() ||</span>
+                              (token.size() &gt; 1 &amp;&amp; firstChar == '-' &amp;&amp; token[1].isDigit());
+    // ÐÐµ Ð¿Ð¾ÑÐ¾Ð¶ Ð½Ð° ÑÐ¸ÑÐ»Ð¾ - Ð½ÐµÐ¸Ð·Ð²ÐµÑÑÐ½ÑÐ¹ Ð¾Ð¿ÐµÑÐ°ÑÐ¾Ñ/ÑÐ¸Ð¼Ð²Ð¾Ð»
+<span style = "background-color:#dfd">    if (!looksNumeric) {
+        return UnsupportedOperator;</span>
+    }
+    // ÐÐ¾ÑÐ¾Ð¶ Ð½Ð° ÑÐ¸ÑÐ»Ð¾: ÐµÑÐ»Ð¸ ÑÐ¾Ð»ÑÐºÐ¾ ÑÐ¸ÑÑÑ/ÑÐ¾ÑÐºÐ°/Ð¼Ð¸Ð½ÑÑ - Ð½ÐµÐ²ÐµÑÐ½ÑÐ¹ ÑÐ¾ÑÐ¼Ð°Ñ ÑÐ¸ÑÐ»Ð°, Ð¸Ð½Ð°ÑÐµ Ð¸Ð¼Ñ Ñ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÐ¼Ð¸ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð°Ð¼Ð¸
+<span style = "background-color:#dfd">    const QString numericChars = "0123456789.-";
+    for (const QChar c : token) {
+        if (!numericChars.contains(c)) {
+            return InvalidVariableName;</span>
+        }
+<span style = "background-color:#dfd">    }
+    return InvalidNumberFormat;
+}</span>
+
+// Ð Ð°Ð·Ð±Ð¾Ñ Ð¾Ð´Ð½Ð¾Ð³Ð¾ ÑÐ¾ÐºÐµÐ½Ð° (Ð´Ð¸ÑÐ¿ÐµÑÑÐµÑ)
+void parseSingleToken(const QString&amp; token,
+                      QStack&lt;ExprNode*&gt;&amp; stack,
+                      int lineNumber,
+                      int tokenIndex,
+                      const QRegularExpression&amp; numRegex,
+                      const QRegularExpression&amp; varRegex,
+                      QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // ÐÐ¸Ð½Ð°ÑÐ½ÑÐ¹ Ð¾Ð¿ÐµÑÐ°ÑÐ¾Ñ (+ - * /)
+<span style = "background-color:#dfd">    if (isBinaryOperator(token)) {
+        handleBinaryOp(token, stack, lineNumber, tokenIndex, errors);
+    }</span>
+    // Ð£Ð½Ð°ÑÐ½ÑÐ¹ Ð¾Ð¿ÐµÑÐ°ÑÐ¾Ñ (++ --)
+<span style = "background-color:#dfd">    else if (token == "++" || token == "--") {
+        handleUnaryOp(token, stack, lineNumber, tokenIndex, errors);
+    }</span>
+    // ÐÐ¾ÑÑÑÐ¿ Ðº ÑÐ»ÐµÐ¼ÐµÐ½ÑÑ Ð¼Ð°ÑÑÐ¸Ð²Ð° ([])
+<span style = "background-color:#dfd">    else if (token == "[]") {
+        handleArrayAccess(token, stack, lineNumber, tokenIndex, errors);
+    }</span>
+    // Ð¦ÐµÐ»Ð¾Ðµ ÑÐ¸ÑÐ»Ð¾
+<span style = "background-color:#dfd">    else if (numRegex.match(token).hasMatch()) {
+        handleNumberToken(token, stack, lineNumber, tokenIndex, errors);
+    }</span>
+    // ÐÐ¼Ñ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹
+<span style = "background-color:#dfd">    else if (varRegex.match(token).hasMatch()) {
+        handleVariableToken(token, stack, lineNumber, tokenIndex, errors);
+    }</span>
+    // ÐÐµÐºÐ¾ÑÑÐµÐºÑÐ½ÑÐ¹ ÑÐ¾ÐºÐµÐ½: Ð¾Ð¿ÑÐµÐ´ÐµÐ»Ð¸ÑÑ ÑÐ¾ÑÐ½ÑÐ¹ Ð²Ð¸Ð´ Ð¾ÑÐ¸Ð±ÐºÐ¸
+    else {
+<span style = "background-color:#dfd">        errors.insert(Error(classifyInvalidToken(token), lineNumber, tokenIndex, token));
+        stack.push(makeStubNode());</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+// ÐÐ¼Ñ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹/Ð¼Ð°ÑÑÐ¸Ð²Ð°
+QString getArrayName(ExprNode* node)
+<span style = "background-color:#dfd">{
+    QString name;</span>
+    // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» Ð¿ÑÑÑ, Ð²ÐµÑÐ½ÑÑÑ Ð¿ÑÑÑÑÑ ÑÑÑÐ¾ÐºÑ
+<span style = "background-color:#dfd">    if (node) {
+        if (node-&gt;type == Var) {</span>
+            // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» = Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ, Ð²ÐµÑÐ½ÑÑÑ ÐµÑ Ð¸Ð¼Ñ
+<span style = "background-color:#dfd">            name = node-&gt;value;
+        } else if (node-&gt;type == ArrayAccess) {</span>
+            // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» + Ð´Ð¾ÑÑÑÐ¿ Ðº Ð¼Ð°ÑÑÐ¸Ð²Ñ, ÑÐµÐºÑÑÑÐ¸Ð²Ð½Ð¾ Ð²Ð·ÑÑÑ Ð¸Ð¼Ñ Ñ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ð°
+<span style = "background-color:#dfd">            name = getArrayName(node-&gt;leftOperand);</span>
+        }
+    }
+    // ÐÐµÑÐ½ÑÑÑ Ð¸Ð¼Ñ
+<span style = "background-color:#dfd">    return name;
+}</span>
+
+// Ð Ð°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÑ Ð¼Ð°ÑÑÐ¸Ð²Ð°
+int getArrayDimension(ExprNode* node)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» Ð¿ÑÑÑ Ð¸Ð»Ð¸ Ð½Ðµ Ð¼Ð°ÑÑÐ¸Ð²,ÑÐ¾ 0
+<span style = "background-color:#dfd">    int dimension = 0;
+    if (node &amp;&amp; node-&gt;type == ArrayAccess) {</span>
+        // ÐÐ°Ð¶Ð´ÑÐ¹ ÑÑÐ¾Ð²ÐµÐ½Ñ [] Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÑ 1
+<span style = "background-color:#dfd">        dimension = 1 + getArrayDimension(node-&gt;leftOperand);</span>
+    }
+    // ÐÐµÑÐ½ÑÑÑ ÑÐ°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÑ
+<span style = "background-color:#dfd">    return dimension;
+}</span>
+
+// ÐÐ±ÑÐ°Ð±Ð¾ÑÑÐ¸Ðº Ð±Ð¸Ð½Ð°ÑÐ½Ð¾Ð³Ð¾ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ°
+void handleBinaryOp(const QString&amp; token, QStack&lt;ExprNode*&gt;&amp; stack, int lineNumber, int tokenIndex, QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ»Ð¸ Ð² ÑÑÐµÐºÐµ Ð¼ÐµÐ½ÑÑÐµ Ð´Ð²ÑÑ ÑÐ·Ð»Ð¾Ð², Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#dfd">    if (stack.size() &lt; 2) {
+        errors.insert(Error(NotEnoughOperands, lineNumber, tokenIndex, token));</span>
+        // ÐÐ¾Ð»Ð¾Ð¶Ð¸ÑÑ Ð·Ð°Ð³Ð»ÑÑÐºÑ Ð¸ Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">        stack.push(makeStubNode());
+        return;</span>
+    }
+    // Ð¡Ð½ÑÑÑ Ñ Ð²ÐµÑÑÐ¸Ð½Ñ Ð¿ÑÐ°Ð²ÑÐ¹ Ð¾Ð¿ÐµÑÐ°Ð½Ð´
+<span style = "background-color:#dfd">    ExprNode* right = stack.pop();</span>
+    // Ð¡Ð½ÑÑÑ Ñ Ð²ÐµÑÑÐ¸Ð½Ñ Ð»ÐµÐ²ÑÐ¹ Ð¾Ð¿ÐµÑÐ°Ð½Ð´
+<span style = "background-color:#dfd">    ExprNode* left  = stack.pop();</span>
+    // ÐÐ¿ÑÐµÐ´ÐµÐ»Ð¸ÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¸Ñ
+<span style = "background-color:#dfd">    TokenType opType = Plus;
+    if (token == "-") opType = Minus;
+    else if (token == "*") opType = Multiply;
+    else if (token == "/") opType = Divide;</span>
+    // Ð¡Ð¾Ð·Ð´Ð°ÑÑ ÑÐ·ÐµÐ» Ð¾Ð¿ÐµÑÐ°ÑÐ¸Ð¸
+<span style = "background-color:#dfd">    ExprNode* opNode = new ExprNode(opType);</span>
+    // ÐÐ¾Ð¼ÐµÑÑÐ¸ÑÑ Ð»ÐµÐ²ÑÐ¹ Ð¸ Ð¿ÑÐ°Ð²ÑÐ¹ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ñ
+<span style = "background-color:#dfd">    opNode-&gt;leftOperand  = left;
+    opNode-&gt;rightOperand = right;</span>
+    // ÐÐµÑÐ½ÑÑÑ Ð² ÑÑÐµÐº
+<span style = "background-color:#dfd">    stack.push(opNode);
+}</span>
+
+// ÐÐ±ÑÐ°Ð±Ð¾ÑÑÐ¸Ðº ÑÐ½Ð°ÑÐ½Ð¾Ð³Ð¾ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ°
+void handleUnaryOp(const QString&amp; token, QStack&lt;ExprNode*&gt;&amp; stack, int lineNumber, int tokenIndex, QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ»Ð¸ ÑÑÐµÐº Ð¿ÑÑÑ, Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#dfd">    if (stack.size() &lt; 1) {
+        errors.insert(Error(NotEnoughOperands, lineNumber, tokenIndex, token));</span>
+        // ÐÐ¾Ð»Ð¾Ð¶Ð¸ÑÑ Ð·Ð°Ð³Ð»ÑÑÐºÑ Ð¸ Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">        stack.push(makeStubNode());
+        return;</span>
+    }
+    // Ð¡Ð½ÑÑÑ Ð¾Ð¿ÐµÑÐ°Ð½Ð´ Ñ Ð²ÐµÑÑÐ¸Ð½Ñ ÑÑÐµÐºÐ°
+<span style = "background-color:#dfd">    ExprNode* operand = stack.pop();</span>
+    // ÐÑÐ»Ð¸ Ð¾Ð¿ÐµÑÐ°Ð½Ð´ = Ð½Ðµ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ, Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#dfd">    if (operand-&gt;type != Var) {
+        errors.insert(Error(UnaryOperandNotVariable, lineNumber, tokenIndex, token));</span>
+    }
+    // ÐÐ¿ÑÐµÐ´ÐµÐ»Ð¸ÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¸Ñ
+<span style = "background-color:#dfd">    TokenType opType = (token == "++") ? Increment : Decrement;</span>
+    // Ð¡Ð¾Ð·Ð´Ð°ÑÑ ÑÐ·ÐµÐ»
+<span style = "background-color:#dfd">    ExprNode* opNode = new ExprNode(opType);</span>
+    // ÐÐ¾Ð¼ÐµÑÑÐ¸ÑÑ Ð¾Ð¿ÐµÑÐ°Ð½Ð´ Ð»ÐµÐ²ÑÐ¼ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ¾Ð¼
+<span style = "background-color:#dfd">    opNode-&gt;leftOperand = operand;</span>
+    // ÐÐ¾Ð»Ð¾Ð¶Ð¸ÑÑ Ð² ÑÑÐµÐº
+<span style = "background-color:#dfd">    stack.push(opNode);
+}</span>
+
+// ÐÐ±ÑÐ°Ð±Ð¾ÑÑÐ¸Ðº Ð´Ð¾ÑÑÑÐ¿Ð° Ðº ÑÐ»ÐµÐ¼ÐµÐ½ÑÑ Ð¼Ð°ÑÑÐ¸Ð²Ð°
+void handleArrayAccess(const QString&amp; token, QStack&lt;ExprNode*&gt;&amp; stack, int lineNumber, int tokenIndex, QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ»Ð¸ Ð² ÑÑÐµÐºÐµ Ð¼ÐµÐ½ÑÑÐµ Ð´Ð²ÑÑ ÑÐ·Ð»Ð¾Ð²
+<span style = "background-color:#dfd">    if (stack.size() &lt; 2) {</span>
+        // ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#dfd">        errors.insert(Error(NotEnoughOperands, lineNumber, tokenIndex, token));</span>
+        // ÐÐ¾Ð»Ð¾Ð¶Ð¸ÑÑ Ð´Ð²Ðµ Ð·Ð°Ð³Ð»ÑÑÐºÐ¸ Ð¸ Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">        stack.push(makeStubNode());
+        stack.push(makeStubNode());
+        return;</span>
+    }
+
+    // Ð¡Ð½ÑÑÑ Ñ Ð²ÐµÑÑÐ¸Ð½Ñ Ð¸Ð½Ð´ÐµÐºÑ
+<span style = "background-color:#dfd">    ExprNode* index = stack.pop();</span>
+    // Ð¡Ð½ÑÑÑ Ñ Ð²ÐµÑÑÐ¸Ð½Ñ Ð¼Ð°ÑÑÐ¸Ð²
+<span style = "background-color:#dfd">    ExprNode* array = stack.pop();</span>
+    // Ð¡Ð¾Ð·Ð´Ð°ÑÑ ÑÐ·ÐµÐ» Ð´Ð¾ÑÑÑÐ¿Ð° Ðº Ð¼Ð°ÑÑÐ¸Ð²Ñ
+<span style = "background-color:#dfd">    ExprNode* arrNode = new ExprNode(ArrayAccess);</span>
+    // Ð»ÐµÐ²ÑÐ¹ Ð¿Ð¾ÑÐ¾Ð¼Ð¾Ðº = Ð¼Ð°ÑÑÐ¸Ð²
+<span style = "background-color:#dfd">    arrNode-&gt;leftOperand  = array;</span>
+    // Ð¿ÑÐ°Ð²ÑÐ¹ = Ð¸Ð½Ð´ÐµÐºÑ
+<span style = "background-color:#dfd">    arrNode-&gt;rightOperand = index;</span>
+    // ÐÐ¾Ð»Ð¾Ð¶Ð¸ÑÑ Ð² ÑÑÐµÐº
+<span style = "background-color:#dfd">    stack.push(arrNode);</span>
+
+    // ÐÑÐ»Ð¸ Ð³Ð»ÑÐ±Ð¸Ð½Ð° Ð²Ð»Ð¾Ð¶ÐµÐ½Ð½Ð¾ÑÑÐ¸ &gt; 5,Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#dfd">    if (getArrayDimension(arrNode) &gt; MAX_INDEX_DEPTH) {
+        errors.insert(Error(NestingDepthExceeded, lineNumber, tokenIndex, getArrayName(arrNode)));</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+// Ð¡Ð±Ð¾Ñ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ-Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð² Ð¸Ð· Ð±Ð°Ð·Ñ Ð¼Ð°ÑÑÐ¸Ð²Ð°
+void collectIndexVars(ExprNode* node, QList&lt;ExprNode*&gt;&amp; sources)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» Ð¿ÑÑÑ, Ð½Ð¸ÑÐµÐ³Ð¾ Ð½Ðµ Ð´ÐµÐ»Ð°ÑÑ
+<span style = "background-color:#dfd">    if (!node) return;</span>
+    // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» = Ð´Ð¾ÑÑÑÐ¿ Ðº Ð¼Ð°ÑÑÐ¸Ð²Ñ
+<span style = "background-color:#dfd">    if (node-&gt;type == ArrayAccess) {</span>
+        // Ð¡Ð¿ÑÑÑÐ¸ÑÑÑÑ Ð¿Ð¾ Ð±Ð°Ð·Ðµ ÑÐµÐ¼ Ð¶Ðµ ÑÐ±Ð¾ÑÐ¾Ð¼ Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð²
+<span style = "background-color:#dfd">        collectIndexVars(node-&gt;leftOperand, sources);</span>
+        // ÐÐ½Ð´ÐµÐºÑ ÑÑÐ¾Ð³Ð¾ ÑÑÐ¾Ð²Ð½Ñ ÑÐ¾Ð±ÑÐ°ÑÑ Ð¾Ð±ÑÑÐ½ÑÐ¼ ÑÐ±Ð¾ÑÐ¾Ð¼ Ð¸ÑÑÐ¾ÑÐ½Ð¸ÐºÐ¾Ð²
+<span style = "background-color:#dfd">        collectSources(node-&gt;rightOperand, sources);</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+// Ð¡Ð±Ð¾Ñ Ð¿ÑÐ¾ÑÐ¸ÑÐ°Ð½Ð½ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ
+void collectSources(ExprNode* node, QList&lt;ExprNode*&gt;&amp; sources)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» Ð¿ÑÑÑ, Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">    if (!node) return;</span>
+
+<span style = "background-color:#dfd">    switch (node-&gt;type) {</span>
+    case Var:
+        // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» = Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ, Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ ÐµÑ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº Ð¸ÑÑÐ¾ÑÐ½Ð¸ÐºÐ¾Ð²
+<span style = "background-color:#dfd">        sources.append(node);
+        break;</span>
+    case Number:
+        // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» = ÑÐ¸ÑÐ»Ð¾, Ð½Ð¸ÑÐµÐ³Ð¾ Ð½Ðµ Ð´Ð¾Ð±Ð°Ð²Ð»ÑÑÑ
+<span style = "background-color:#dfd">        break;</span>
+    case ArrayAccess:
+        // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» = Ð´Ð¾ÑÑÑÐ¿ Ðº Ð¼Ð°ÑÑÐ¸Ð²Ñ: Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ ÑÐ°Ð¼ ÑÐ·ÐµÐ» (ÑÐµÐ»ÑÐ¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ a[2], a[i][j])
+<span style = "background-color:#dfd">        sources.append(node);</span>
+        // Ð¡Ð¾Ð±ÑÐ°ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÐµ-Ð¸Ð½Ð´ÐµÐºÑÑ Ð¸Ð· Ð±Ð°Ð·Ñ Ð¼Ð°ÑÑÐ¸Ð²Ð°
+<span style = "background-color:#dfd">        collectIndexVars(node-&gt;leftOperand, sources);</span>
+        // Ð¡Ð¾Ð±ÑÐ°ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÐµ Ð¸Ð· Ð¸Ð½Ð´ÐµÐºÑÐ° ÑÐµÐºÑÑÐµÐ³Ð¾ Ð¸Ð·Ð¼ÐµÑÐµÐ½Ð¸Ñ
+<span style = "background-color:#dfd">        collectSources(node-&gt;rightOperand, sources);
+        break;</span>
+    default: // + - * / ++ --
+        // ÐÐ»Ñ Ð¿ÑÐ¾ÑÐ¸Ñ ÑÐ·Ð»Ð¾Ð² (Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÑ) - ÑÐµÐºÑÑÑÐ¸Ð²Ð½Ð¾ Ð¾Ð±Ð¾Ð¹ÑÐ¸ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð¸ Ð¿ÑÐ°Ð²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ°
+<span style = "background-color:#dfd">        collectSources(node-&gt;leftOperand, sources);
+        collectSources(node-&gt;rightOperand, sources);</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+// Ð¡Ð±Ð¾Ñ Ð¸Ð·Ð¼ÐµÐ½ÑÐµÐ¼ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ
+void collectModified(ExprNode* node, QList&lt;ExprNode*&gt;&amp; modified)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» Ð¿ÑÑÑ, Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">    if (!node) return;</span>
+    // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» = Ð¸Ð½ÐºÑÐµÐ¼ÐµÐ½Ñ Ð¸Ð»Ð¸ Ð´ÐµÐºÑÐµÐ¼ÐµÐ½Ñ Ð¸ ÐµÐ³Ð¾ Ð¾Ð¿ÐµÑÐ°Ð½Ð´ = Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ
+    if ((node-&gt;type == Increment || node-&gt;type == Decrement) &amp;&amp;
+<span style = "background-color:#dfd">        node-&gt;leftOperand &amp;&amp; node-&gt;leftOperand-&gt;type == Var) {</span>
+        // ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ ÐµÑ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº Ð¸Ð·Ð¼ÐµÐ½ÑÐµÐ¼ÑÑ
+<span style = "background-color:#dfd">        modified.append(node-&gt;leftOperand);</span>
+    }
+    // Ð ÐµÐºÑÑÑÐ¸Ð²Ð½Ð¾ Ð¾Ð±Ð¾Ð¹ÑÐ¸ Ð¾Ð±Ð° Ð¿Ð¾Ð´Ð´ÐµÑÐµÐ²Ð°
+<span style = "background-color:#dfd">    collectModified(node-&gt;leftOperand, modified);
+    collectModified(node-&gt;rightOperand, modified);
+}</span>
+
+// Ð¡ÑÐ°Ð²Ð½ÐµÐ½Ð¸Ðµ Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð²
+DependencyType compareIndices(ExprNode* node1, ExprNode* node2)
+<span style = "background-color:#dfd">{</span>
+    DependencyType result;
+
+<span style = "background-color:#dfd">    if (!node1 &amp;&amp; !node2) {</span>
+        // ÐÑÐ»Ð¸ Ð¾Ð±Ð° ÑÐ·Ð»Ð° Ð¿ÑÑÑÑ, Ð²ÐµÑÐ½ÑÑÑ Direct
+<span style = "background-color:#fdd">        result = Direct;</span>
+<span style = "background-color:#dfd">    } else if (!node1 || !node2) {</span>
+        // ÐÑÐ»Ð¸ Ð¿ÑÑÑ ÑÐ¾Ð²Ð½Ð¾ Ð¾Ð´Ð¸Ð½, Ð²ÐµÑÐ½ÑÑÑ General
+<span style = "background-color:#fdd">        result = General;</span>
+<span style = "background-color:#dfd">    } else if (node1-&gt;type != node2-&gt;type) {</span>
+        // ÐÑÐ»Ð¸ ÑÐ¸Ð¿Ñ ÑÐ·Ð»Ð¾Ð² ÑÐ°Ð·Ð»Ð¸ÑÐ°ÑÑÑÑ, Ð²ÐµÑÐ½ÑÑÑ General
+<span style = "background-color:#dfd">        result = General;
+    } else if (node1-&gt;type == Var) {</span>
+        // ÐÑÐ»Ð¸ ÑÐ·Ð»Ñ = Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÐµ: Ð¸Ð¼ÐµÐ½Ð° ÑÐ°Ð²Ð½Ñ - Direct, Ð¸Ð½Ð°ÑÐµ General
+<span style = "background-color:#dfd">        result = (node1-&gt;value == node2-&gt;value) ? Direct : General;
+    } else if (node1-&gt;type == Number) {</span>
+        // ÐÑÐ»Ð¸ ÑÐ·Ð»Ñ = ÑÐ¸ÑÐ»Ð°: Ð·Ð½Ð°ÑÐµÐ½Ð¸Ñ ÑÐ°Ð²Ð½Ñ - Direct, Ð¸Ð½Ð°ÑÐµ NoDependency
+<span style = "background-color:#dfd">        result = (node1-&gt;value == node2-&gt;value) ? Direct : NoDependency;
+    } else if (node1-&gt;type == ArrayAccess) {</span>
+        // ÐÑÐ»Ð¸ ÑÐ·Ð»Ñ - Ð´Ð¾ÑÑÑÐ¿ Ðº Ð¼Ð°ÑÑÐ¸Ð²Ñ: ÑÑÐ°Ð²Ð½Ð¸ÑÑ Ð±Ð°Ð·Ñ Ð¸ Ð¸Ð½Ð´ÐµÐºÑÑ ÑÐµÐºÑÑÑÐ¸Ð²Ð½Ð¾
+<span style = "background-color:#dfd">        const DependencyType leftResult  = compareIndices(node1-&gt;leftOperand,  node2-&gt;leftOperand);
+        const DependencyType rightResult = compareIndices(node1-&gt;rightOperand, node2-&gt;rightOperand);</span>
+        // ÐÑÐ»Ð¸ ÑÐ¾ÑÑ Ð±Ñ Ð¾Ð´Ð¸Ð½ ÑÐµÐ·ÑÐ»ÑÑÐ°Ñ NoDependency - Ð²ÐµÑÐ½ÑÑÑ NoDependency
+<span style = "background-color:#dfd">        if (leftResult == NoDependency || rightResult == NoDependency) {
+            result = NoDependency;</span>
+            // ÐÐ½Ð°ÑÐµ ÐµÑÐ»Ð¸ ÑÐ¾ÑÑ Ð±Ñ Ð¾Ð´Ð¸Ð½ General - Ð²ÐµÑÐ½ÑÑÑ General
+<span style = "background-color:#dfd">        } else if (leftResult == General || rightResult == General) {
+            result = General;</span>
+            // ÐÐ½Ð°ÑÐµ - Ð²ÐµÑÐ½ÑÑÑ Direct
+<span style = "background-color:#dfd">        } else {
+            result = Direct;</span>
+        }
+<span style = "background-color:#dfd">    } else {
+        result = General;</span>
+    }
+
+<span style = "background-color:#dfd">    return result;
+}</span>
+
+// Ð§ÑÐµÐ½Ð¸Ðµ ÑÐ°Ð¹Ð»Ð°
+bool readFile(const QString&amp; filePath, QStringList&amp; fileContent, QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐºÑÑÑÑ ÑÐ°Ð¹Ð»
+<span style = "background-color:#dfd">    QFile file(filePath);</span>
+    // ÐÑÐ»Ð¸ ÑÐ°Ð¹Ð» Ð½Ðµ Ð¾ÑÐºÑÑÐ»ÑÑ - Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ Ð¸ Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        errors.insert(Error(InputFileNotFound, 0, 0, filePath));
+        return false;</span>
+    }
+    // ÐÑÐ¾ÑÐ¸ÑÐ°ÑÑ Ð²ÑÐµ ÑÑÑÐ¾ÐºÐ¸ Ð¸Ð· ÑÐ°Ð¹Ð»Ð° Ð¸ Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð¸Ñ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº ÑÑÑÐ¾Ðº
+<span style = "background-color:#dfd">    QTextStream in(&amp;file);
+    while (!in.atEnd()) {
+        fileContent.append(in.readLine());
+    }</span>
+    // ÐÐ°ÐºÑÑÑÑ ÑÐ°Ð¹Ð» Ð¸ Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">    file.close();
+    return true;
+}</span></pre>
+	</body>
+</html>

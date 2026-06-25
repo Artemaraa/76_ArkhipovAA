@@ -1,0 +1,267 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>dependencygraph.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+#include "dependencygraph.h"
+#include "functions.h"
+
+<span style = "background-color:#dfd">DependencyGraph::DependencyGraph() {}</span>
+
+DependencyGraph::~DependencyGraph()
+<span style = "background-color:#dfd">{
+    clear();
+}</span>
+
+// ÐÑÐ¸ÑÑÐºÐ° Ð³ÑÐ°ÑÐ°
+void DependencyGraph::clear()
+<span style = "background-color:#dfd">{</span>
+    // Ð£Ð´Ð°Ð»Ð¸ÑÑ Ð²ÑÐµ ÑÑÐ±ÑÐ°
+<span style = "background-color:#dfd">    qDeleteAll(edges);</span>
+    // ÐÐ¿ÑÑÑÐ¾ÑÐ¸ÑÑ ÑÐ¿Ð¸ÑÐºÐ¸ Ð¸ ÑÐ°Ð±Ð»Ð¸ÑÑ Ð½Ð°Ð²Ð¸Ð³Ð°ÑÐ¸Ð¸
+<span style = "background-color:#dfd">    actions.clear();
+    edges.clear();
+    outgoing.clear();
+    incoming.clear();
+}</span>
+
+// ÐÐ¾ÑÑÑÐ¾ÐµÐ½Ð¸Ðµ Ð³ÑÐ°ÑÐ° Ð¿Ð¾ Ð²ÑÐµÐ¼ Ð´ÐµÐ¹ÑÑÐ²Ð¸ÑÐ¼
+void DependencyGraph::buildGraph(const QList&lt;Action*&gt;&amp; actionsList, QMap&lt;QString, Action*&gt;&amp; varTable, QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ¸ÑÑÐ¸ÑÑ ÑÐ°Ð±Ð»Ð¸ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ Ð¸ Ð³ÑÐ°Ñ
+<span style = "background-color:#dfd">    varTable.clear();
+    clear();</span>
+
+    // ÐÐ¾Ð½ÑÐµÐºÑÑ ÑÐ°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÐµÐ¹ Ð½Ð° Ð²ÑÑ Ð¿Ð¾ÑÑÑÐ¾ÐµÐ½Ð¸Ðµ (0 = ÑÐºÐ°Ð»ÑÑ, &gt;=1 = Ð¼Ð°ÑÑÐ¸Ð²)
+<span style = "background-color:#dfd">    QMap&lt;QString, int&gt; dims;</span>
+
+    // ÐÑÐ¾Ð¹ÑÐ¸ Ð¿Ð¾ ÑÐ¿Ð¸ÑÐºÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ð¹
+<span style = "background-color:#dfd">    for (int i = 0; i &lt; actionsList.size(); ++i) {
+        Action* action = actionsList[i];</span>
+        // ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð³Ð¾ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ Ð²ÑÐ·Ð²Ð°ÑÑ Ð¿ÑÐ¸Ð¼ÐµÐ½ÐµÐ½Ð¸Ðµ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ
+<span style = "background-color:#dfd">        if (action != nullptr) {
+            applyAction(action, varTable, errors, dims);</span>
+        }
+<span style = "background-color:#dfd">    }
+}</span>
+
+// ÐÑÐ¸Ð¼ÐµÐ½ÐµÐ½Ð¸Ðµ Ð¾Ð´Ð½Ð¾Ð³Ð¾ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ
+void DependencyGraph::applyAction(Action* currentAction, QMap&lt;QString, Action*&gt;&amp; varTable, QSet&lt;Error&gt;&amp; errors, QMap&lt;QString, int&gt;&amp; dims)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ»Ð¸ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ Ð¿ÑÑÑÐ¾, Ð²ÑÐ¹ÑÐ¸
+<span style = "background-color:#dfd">    if (currentAction == nullptr) {</span>
+<span style = "background-color:#fdd">        return;</span>
+    }
+    // Ð£Ð·Ð½Ð°ÑÑ Ð¸Ð¼Ñ ÑÐµÐ»ÐµÐ²Ð¾Ð¹ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹; ÐµÑÐ»Ð¸ Ð¸Ð¼Ñ Ð¿ÑÑÑÐ¾Ðµ - Ð²ÑÐ¹ÑÐ¸ (Ð½ÐµÐºÐ¾ÑÑÐµÐºÑÐ½Ð°Ñ ÑÐµÐ»Ñ)
+<span style = "background-color:#dfd">    const QString targetName = getArrayName(currentAction-&gt;targetRoot);
+    if (targetName.isEmpty()) {</span>
+<span style = "background-color:#fdd">        return;</span>
+    }
+    // ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ ÑÐ°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÐ¸ Ð²ÑÐµÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ; Ð¿ÑÐ¸ Ð¾ÑÐ¸Ð±ÐºÐµ - Ð½Ðµ ÑÑÑÐ¾Ð¸ÑÑ ÑÑÐ±ÑÐ°
+<span style = "background-color:#dfd">    if (checkActionDimensions(currentAction, dims, errors)) {
+        return;</span>
+    }
+    // ÐÐ¾ÑÑÑÐ¾Ð¸ÑÑ ÑÑÐ±ÑÐ° Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐ¸ Ð´Ð»Ñ Ð¿ÑÐ¾ÑÐ¸ÑÐ°Ð½Ð½ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ
+<span style = "background-color:#dfd">    buildEdgesForAction(currentAction, currentAction-&gt;sourceVariables, varTable);</span>
+    // ÐÐ±Ð½Ð¾Ð²Ð¸ÑÑ ÑÐ°Ð±Ð»Ð¸ÑÑ Ð¿Ð¾ÑÐ»ÐµÐ´Ð½Ð¸Ñ Ð¸Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ð¹ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ
+<span style = "background-color:#dfd">    updateVarTable(currentAction, targetName, currentAction-&gt;modifiedVariables, varTable);</span>
+    // ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ ÑÐµÐºÑÑÐµÐµ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº Ð²ÐµÑÑÐ¸Ð½ Ð³ÑÐ°ÑÐ°
+<span style = "background-color:#dfd">    addAction(currentAction);
+}</span>
+
+// ÐÑÐ¾Ð²ÐµÑÐºÐ° ÑÐ°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÐµÐ¹ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ; Ð²Ð¾Ð·Ð²ÑÐ°ÑÐ°ÐµÑ true Ð¿ÑÐ¸ Ð½Ð°Ð»Ð¸ÑÐ¸Ð¸ Ð¾ÑÐ¸Ð±ÐºÐ¸
+bool DependencyGraph::checkActionDimensions(Action* currentAction, QMap&lt;QString, int&gt;&amp; dims, QSet&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // Ð¡Ð¾Ð±ÑÐ°ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÐµ Ð»ÐµÐ²Ð¾Ð¹ ÑÐ°ÑÑÐ¸ (ÑÐµÐ»Ñ) Ð¸ Ð¿ÑÐ°Ð²Ð¾Ð¹ ÑÐ°ÑÑÐ¸ (Ð¸ÑÑÐ¾ÑÐ½Ð¸ÐºÐ¸)
+<span style = "background-color:#dfd">    QList&lt;ExprNode*&gt; vars;
+    collectSources(currentAction-&gt;targetRoot, vars);
+    vars.append(currentAction-&gt;sourceVariables);</span>
+    // ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ ÐºÐ°Ð¶Ð´ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ; Ð²ÑÐµ Ð¾ÑÐ¸Ð±ÐºÐ¸ ÐºÐ¾Ð¿Ð¸Ð¼, Ð½Ðµ Ð²ÑÑÐ¾Ð´Ð¸Ð¼ Ð½Ð° Ð¿ÐµÑÐ²Ð¾Ð¹
+<span style = "background-color:#dfd">    bool hasDimError = false;
+    for (ExprNode* node : vars) {
+        const QString name = getArrayName(node);
+        if (name.isEmpty()) {</span>
+<span style = "background-color:#fdd">            continue;</span>
+        }
+<span style = "background-color:#dfd">        Error dimError;
+        if (!validateArrayDimension(node, name, dims, currentAction-&gt;number, dimError)) {
+            errors.insert(dimError);
+            hasDimError = true;</span>
+        }
+<span style = "background-color:#dfd">    }
+    return hasDimError;
+}</span>
+
+// ÐÐ¾ÑÑÑÐ¾ÐµÐ½Ð¸Ðµ ÑÑÐ±ÐµÑ Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐ¸ Ð´Ð»Ñ Ð¿ÑÐ¾ÑÐ¸ÑÐ°Ð½Ð½ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ
+void DependencyGraph::buildEdgesForAction(Action* currentAction, const QList&lt;ExprNode*&gt;&amp; sourceVariables, const QMap&lt;QString, Action*&gt;&amp; varTable)
+<span style = "background-color:#dfd">{
+    for (ExprNode* varNode : sourceVariables) {
+        Action* dependencyAction = nullptr;
+        const DependencyType depType = determineDependency(varNode, varTable, dependencyAction);</span>
+        // ÐÑÐ»Ð¸ Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÑ ÐµÑÑÑ, Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ ÑÐµÐ±ÑÐ¾ Ð¾Ñ ÑÐµÐºÑÑÐµÐ³Ð¾ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ Ðº Ð½Ð°Ð¹Ð´ÐµÐ½Ð½Ð¾Ð¼Ñ
+<span style = "background-color:#dfd">        if (depType != NoDependency &amp;&amp; dependencyAction != nullptr) {
+            addEdge(currentAction, dependencyAction, depType);</span>
+        }
+<span style = "background-color:#dfd">    }
+}</span>
+
+// ÐÐ±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ ÑÐ°Ð±Ð»Ð¸ÑÑ Ð¿Ð¾ÑÐ»ÐµÐ´Ð½Ð¸Ñ Ð¸Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ð¹ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ
+void DependencyGraph::updateVarTable(Action* currentAction, const QString&amp; targetName, const QList&lt;ExprNode*&gt;&amp; modifiedVariables, QMap&lt;QString, Action*&gt;&amp; varTable)
+<span style = "background-color:#dfd">{</span>
+    // Ð¦ÐµÐ»ÐµÐ²ÑÑ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ Ð¿Ð¾ÑÐ»ÐµÐ´Ð½Ð¸Ð¼ Ð¸Ð·Ð¼ÐµÐ½Ð¸Ð»Ð¾ ÑÐµÐºÑÑÐµÐµ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ
+<span style = "background-color:#dfd">    varTable[targetName] = currentAction;</span>
+    // ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð¹ Ð¸Ð·Ð¼ÐµÐ½ÑÐµÐ¼Ð¾Ð¹ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹ (++/--) Ð¾Ð±Ð½Ð¾Ð²Ð¸ÑÑ Ð·Ð°Ð¿Ð¸ÑÑ Ð½Ð° ÑÐµÐºÑÑÐµÐµ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ
+<span style = "background-color:#dfd">    for (ExprNode* varNode : modifiedVariables) {
+        if (varNode) {
+            const QString varName = getArrayName(varNode);
+            if (!varName.isEmpty()) {
+                varTable[varName] = currentAction;</span>
+            }
+<span style = "background-color:#dfd">        }
+    }
+}</span>
+
+// ÐÐ¾Ð±Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ð²ÐµÑÑÐ¸Ð½Ñ
+void DependencyGraph::addAction(Action* action)
+<span style = "background-color:#dfd">{</span>
+    // ÐµÑÐ»Ð¸ ÑÐºÐ°Ð·Ð°ÑÐµÐ»Ñ Ð½Ðµ Ð¿ÑÑÑ, Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº Ð²ÐµÑÑÐ¸Ð½
+<span style = "background-color:#dfd">    if (action) {
+        actions.append(action);</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+// ÐÐ¾Ð±Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ ÑÐµÐ±ÑÐ° Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐ¸
+void DependencyGraph::addEdge(Action* from, Action* to, DependencyType type)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ»Ð¸ Ð»ÑÐ±Ð¾Ðµ Ð¸Ð· Ð´ÐµÐ¹ÑÑÐ²Ð¸Ð¹ Ð¾ÑÑÑÑÑÑÐ²ÑÐµÑ - Ð½Ð¸ÑÐµÐ³Ð¾ Ð½Ðµ Ð´ÐµÐ»Ð°ÑÑ
+<span style = "background-color:#dfd">    if (!from || !to) return;</span>
+
+    // ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ ÑÐ¿Ð¸ÑÐ¾Ðº ÑÑÐ±ÐµÑ Ð½Ð° Ð´ÑÐ±Ð»Ð¸ÐºÐ°Ñ (Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÑ ÑÐ¶Ðµ Ð¸Ð¼ÐµÐµÑÑÑ)
+<span style = "background-color:#dfd">    bool exists = false;
+    for (const DependencyEdge* edge : edges) {
+        if (edge-&gt;from == from &amp;&amp; edge-&gt;to == to) {
+            exists = true;
+            break;// Ð´ÑÐ±Ð»Ð¸ÐºÐ°Ñ Ð½Ð°Ð¹Ð´ÐµÐ½, Ð¿ÑÐµÐºÑÐ°ÑÐ°ÐµÐ¼ Ð¿Ð¾Ð¸ÑÐº</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+    // ÐÑÐ»Ð¸ Ð´ÑÐ±Ð»Ð¸ÐºÐ°ÑÐ° Ð½ÐµÑ
+<span style = "background-color:#dfd">    if (!exists) {</span>
+        // Ð¡Ð¾Ð·Ð´Ð°ÑÑ ÑÐµÐ±ÑÐ¾
+<span style = "background-color:#dfd">        DependencyEdge* newEdge = new DependencyEdge(from, to, type);
+        edges.append(newEdge);</span>
+        // ÐÐ±Ð½Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ ÑÐ°Ð±Ð»Ð¸ÑÑ Ð½Ð°Ð²Ð¸Ð³Ð°ÑÐ¸Ð¸
+        // ÐÑÑÐ¾Ð´ÑÑÐ¸Ðµ (Ð¸ÑÑÐ¾ÑÐ½Ð¸Ðº -&gt; Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾Ðµ) Ð¸ Ð²ÑÐ¾Ð´ÑÑÐ¸Ðµ (Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾Ðµ -&gt; Ð¸ÑÑÐ¾ÑÐ½Ð¸Ðº)
+<span style = "background-color:#dfd">        outgoing.insert(to, from);
+        incoming.insert(from, to);</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+// ÐÑÐ¾Ð²ÐµÑÐºÐ° ÑÐ°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÐ¸ ÑÐµÐ»ÐµÐ²Ð¾Ð¹ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹
+bool DependencyGraph::validateArrayDimension(ExprNode* node,
+                                             const QString&amp; varName,
+                                             QMap&lt;QString, int&gt;&amp; dims,
+                                             int lineNumber,
+                                             Error&amp; error)
+<span style = "background-color:#dfd">{</span>
+    // Ð Ð°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÑ ÑÑÐ¾Ð¹ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹ (0 = ÑÐºÐ°Ð»ÑÑ, &gt;=1 = Ð¼Ð°ÑÑÐ¸Ð²)
+<span style = "background-color:#dfd">    const int currentDim = getArrayDimension(node);</span>
+    // ÐÑÐ»Ð¸ Ð¸Ð¼Ñ ÐµÑÑ Ð½Ðµ Ð²ÑÑÑÐµÑÐ°Ð»Ð¾ÑÑ - Ð·Ð°ÑÐ¸ÐºÑÐ¸ÑÐ¾Ð²Ð°ÑÑ ÐµÐ³Ð¾ ÑÐ°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÑ
+<span style = "background-color:#dfd">    if (!dims.contains(varName)) {
+        dims[varName] = currentDim;
+        return true;</span>
+    }
+    // Ð¡Ð²ÐµÑÐ¸ÑÑ Ñ Ð·Ð°ÑÐ¸ÐºÑÐ¸ÑÐ¾Ð²Ð°Ð½Ð½Ð¾Ð¹ ÑÐ°Ð½ÐµÐµ ÑÐ°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÑÑ
+<span style = "background-color:#dfd">    const int savedDim = dims[varName];
+    if (currentDim == savedDim) {
+        return true;</span>
+    }
+    // Ð Ð°Ð·Ð¼ÐµÑÐ½Ð¾ÑÑÐ¸ ÑÐ°Ð·Ð¾ÑÐ»Ð¸ÑÑ - Ð²ÑÐ±ÑÐ°ÑÑ ÑÐ¾ÑÐ½ÑÐ¹ ÑÐ¸Ð¿ Ð¾ÑÐ¸Ð±ÐºÐ¸
+<span style = "background-color:#dfd">    if (savedDim == 0 &amp;&amp; currentDim &gt; 0) {
+        error = Error(ScalarWithIndex, lineNumber, 0, varName);      // Ð±ÑÐ» ÑÐºÐ°Ð»ÑÑ, ÑÑÐ°Ð» Ð¼Ð°ÑÑÐ¸Ð²
+    } else if (savedDim &gt; 0 &amp;&amp; currentDim == 0) {
+        error = Error(ArrayWithoutIndex, lineNumber, 0, varName);    // Ð±ÑÐ» Ð¼Ð°ÑÑÐ¸Ð², ÑÑÐ°Ð» ÑÐºÐ°Ð»ÑÑ
+    } else {
+        error = Error(InvalidArrayDimension, lineNumber, 0, varName); // Ð´ÑÑÐ³Ð¾Ðµ ÑÐ¸ÑÐ»Ð¾ Ð¸Ð·Ð¼ÐµÑÐµÐ½Ð¸Ð¹</span>
+    }
+<span style = "background-color:#dfd">    return false;
+}</span>
+
+// ÐÐ¿ÑÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ðµ Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐ¸ Ð´Ð»Ñ Ð¾Ð´Ð½Ð¾Ð¹ Ð¿ÑÐ¾ÑÐ¸ÑÐ°Ð½Ð½Ð¾Ð¹ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹
+DependencyType DependencyGraph::determineDependency(ExprNode* varNode,
+                                                    const QMap&lt;QString, Action*&gt;&amp; varTable,
+                                                    Action*&amp; dependencyAction)
+<span style = "background-color:#dfd">{
+    DependencyType result = NoDependency;// Ð¿Ð¾ ÑÐ¼Ð¾Ð»ÑÐ°Ð½Ð¸Ñ ÑÐ²ÑÐ·Ð¸ Ð½ÐµÑ
+    dependencyAction = nullptr;</span>
+    // ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» Ð·Ð°Ð´Ð°Ð½, Ð½Ð°Ð¹ÑÐ¸ Ð¸ÑÑÐ¾ÑÐ½Ð¸Ðº
+<span style = "background-color:#dfd">    if (varNode) {
+        const QString varName = getArrayName(varNode);</span>
+        // ÐÐ¼Ñ Ð´Ð¾Ð»Ð¶Ð½Ð¾ Ð±ÑÑÑ Ð½ÐµÐ¿ÑÑÑÑÐ¼ Ð¸ Ð¿ÑÐ¸ÑÑÑÑÑÐ²Ð¾Ð²Ð°ÑÑ Ð² ÑÐ°Ð±Ð»Ð¸ÑÐµ
+<span style = "background-color:#dfd">        if (!varName.isEmpty() &amp;&amp; varTable.contains(varName)) {
+            Action* last = varTable[varName];</span>
+            // Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ Ð¸Ð·Ð¼ÐµÐ½Ð¸Ð»Ð°ÑÑ / Ð¾Ð±ÑÑÐ²Ð¸Ð»Ð°ÑÑ ÑÐ°Ð½ÐµÐµ
+<span style = "background-color:#dfd">            if (last != nullptr &amp;&amp; last-&gt;targetRoot != nullptr) {
+                dependencyAction = last;</span>
+                // Ð¿Ð¾Ð»ÑÐ¸ÑÑ Ð¸Ð¼Ñ ÑÐµÐ»Ð¸ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ
+<span style = "background-color:#dfd">                const QString targetName = getArrayName(last-&gt;targetRoot);
+                if (targetName == varName) {</span>
+                    // ÑÑÐ°Ð²Ð½Ð¸ÑÑ Ð¸Ð½Ð´ÐµÐºÑÑ Ñ Ð¿Ð¾Ð»ÑÑÐµÐ½Ð½Ð¾Ð¹ ÑÐµÐ»Ð¸ Ð¸ Ð·Ð°Ð´Ð°Ð½Ð½Ð¾Ð³Ð¾ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">                    result = compareIndices(varNode, last-&gt;targetRoot);
+                } else {</span>
+                    // ÐÐ¾Ð»ÑÐ·Ð¾Ð²Ð°ÑÐµÐ»Ñ Ð¸Ð·Ð¼ÐµÐ½Ð¸Ð» Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½ÑÑ ÑÐµÑÐµÐ· ++/-- Ð¿ÑÑÐ¼Ð°Ñ ÑÐ²ÑÐ·Ñ
+<span style = "background-color:#dfd">                    result = Direct;</span>
+                }
+<span style = "background-color:#dfd">            }</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+    // ÐÐµÑÐ½ÑÑÑ ÑÐµÐ·ÑÐ»ÑÑÐ°Ñ
+<span style = "background-color:#dfd">    return result;
+}</span>
+
+// ÐÐ°Ð²Ð¸Ð³Ð°ÑÐ¸Ñ Ð½Ð° ÐºÐ¾Ð³Ð¾ Ð²Ð»Ð¸ÑÐµÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ
+QList&lt;Action*&gt; DependencyGraph::getOutgoing(Action* action) const
+<span style = "background-color:#fdd">{
+    return outgoing.values(action);
+}</span>
+
+// ÐÐ°Ð²Ð¸Ð³Ð°ÑÐ¸Ñ Ð¾Ñ ÐºÐ¾Ð³Ð¾ Ð·Ð°Ð²Ð¸ÑÐ¸Ñ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ðµ
+QList&lt;Action*&gt; DependencyGraph::getIncoming(Action* action) const
+<span style = "background-color:#fdd">{
+    return incoming.values(action);
+}</span>
+
+// Ð¤Ð¾ÑÐ¼Ð¸ÑÐ¾Ð²Ð°Ð½Ð¸Ðµ DOT-ÑÐµÐºÑÑÐ°
+QString DependencyGraph::toDOT() const
+<span style = "background-color:#dfd">{</span>
+    // ÐÐ°Ð¿Ð¸ÑÐ°ÑÑ Ð·Ð°Ð³Ð¾Ð»Ð¾Ð²Ð¾Ðº Ð³ÑÐ°ÑÐ°
+<span style = "background-color:#dfd">    QString result = "digraph G {\n";</span>
+
+    // ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð¹ Ð²ÐµÑÑÐ¸Ð½Ñ Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ ÑÑÑÐ¾ÐºÑ: Ð½Ð¾Ð¼ÐµÑ Ð´ÐµÐ¹ÑÑÐ²Ð¸Ñ Ð¸ Ð¿Ð¾Ð´Ð¿Ð¸ÑÑ Ñ Ð¸ÑÑÐ¾Ð´Ð½Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¾Ð¹
+<span style = "background-color:#dfd">    for (const Action* action : actions) {
+        result += "    " + QString::number(action-&gt;number) +</span>
+                  " [label=\"" + action-&gt;originalLine + "\"];\n";
+<span style = "background-color:#dfd">    }</span>
+
+    // ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð³Ð¾ ÑÐµÐ±ÑÐ° Ð´Ð¾Ð±Ð°Ð²Ð¸ÑÑ ÑÑÑÐ¾ÐºÑ-ÑÑÑÐµÐ»ÐºÑ "from -&gt; to"
+<span style = "background-color:#dfd">    for (const DependencyEdge* edge : edges) {
+        result += "    " + QString::number(edge-&gt;from-&gt;number) +</span>
+                  " -&gt; " + QString::number(edge-&gt;to-&gt;number);
+        // ÐÑÐ»Ð¸ ÑÐ²ÑÐ·Ñ Ð¾Ð±ÑÐ°Ñ (General) - Ð¿Ð¾Ð¼ÐµÑÐ¸ÑÑ ÐµÑ Ð¿ÑÐ½ÐºÑÐ¸ÑÐ¾Ð¼
+<span style = "background-color:#dfd">        if (edge-&gt;type == General) {
+            result += " [style=dashed]";</span>
+        }
+<span style = "background-color:#dfd">        result += ";\n";
+    }</span>
+
+    // ÐÐ°ÐºÑÑÑÑ Ð±Ð»Ð¾Ðº Ð³ÑÐ°ÑÐ° Ð¸ Ð²ÐµÑÐ½ÑÑÑ ÑÐ¾Ð±ÑÐ°Ð½Ð½ÑÐ¹ ÑÐµÐºÑÑ
+<span style = "background-color:#dfd">    result += "}\n";
+    return result;
+}</span></pre>
+	</body>
+</html>
