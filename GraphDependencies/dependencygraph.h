@@ -116,6 +116,39 @@ public:
      */
     QString toDOT() const;
 
+    /**
+     * @brief Проверяет согласованность размерностей всех переменных действия
+     * @param[in]     currentAction  текущее действие
+     * @param[in,out] dims           таблица зафиксированных размерностей переменных
+     * @param[in,out] errors         множество ошибок
+     * @return true - обнаружена ошибка размерности, иначе false
+     */
+    bool checkActionDimensions(Action* currentAction,
+                                      QMap<QString, int>& dims,
+                                      QSet<Error>& errors);
+
+    /**
+     * @brief Строит рёбра зависимости для прочитанных переменных действия
+     * @param[in] currentAction    текущее действие
+     * @param[in] sourceVariables  прочитанные переменные правой части
+     * @param[in] varTable         таблица переменных (последнее изменившее действие)
+     */
+    void buildEdgesForAction(Action* currentAction,
+                             const QList<ExprNode*>& sourceVariables,
+                             const QMap<QString, Action*>& varTable);
+
+    /**
+     * @brief Обновляет таблицу последних изменений переменных текущим действием
+     * @param[in]     currentAction      текущее действие
+     * @param[in]     targetName         имя целевой переменной
+     * @param[in]     modifiedVariables  переменные, изменяемые операторами ++/--
+     * @param[in,out] varTable           таблица переменных
+     */
+    void updateVarTable(Action* currentAction,
+                               const QString& targetName,
+                               const QList<ExprNode*>& modifiedVariables,
+                               QMap<QString, Action*>& varTable);
+
 };
 
 #endif // DEPENDENCYGRAPH_H

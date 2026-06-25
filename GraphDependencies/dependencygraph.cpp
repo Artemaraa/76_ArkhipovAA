@@ -47,53 +47,65 @@ void DependencyGraph::applyAction(Action* currentAction, QMap<QString, Action*>&
     if (currentAction == nullptr) {
         return;
     }
-    // Взять данные из самого действия
-    ExprNode* targetRoot = currentAction->targetRoot;
-    const QList<ExprNode*>& sourceVariables = currentAction->sourceVariables;
-    const QList<ExprNode*>& modifiedVariables = currentAction->modifiedVariables;
-
     // Узнать имя целевой переменной; если имя пустое - выйти (некорректная цель)
-    const QString targetName = getArrayName(targetRoot);
+    const QString targetName = getArrayName(currentAction->targetRoot);
     if (targetName.isEmpty()) {
         return;
     }
+    // Проверить размерности всех переменных действия; при ошибке - не строить рёбра
+    if (checkActionDimensions(currentAction, dims, errors)) {
+        return;
+    }
+    // Построить рёбра зависимости для прочитанных переменных
+    buildEdgesForAction(currentAction, currentAction->sourceVariables, varTable);
+    // Обновить таблицу последних изменений переменных
+    updateVarTable(currentAction, targetName, currentAction->modifiedVariables, varTable);
+    // Добавить текущее действие в список вершин графа
+    addAction(currentAction);
+}
+
+// Проверка размерностей переменных действия; возвращает true при наличии ошибки
+bool DependencyGraph::checkActionDimensions(Action* currentAction, QMap<QString, int>& dims, QSet<Error>& errors)
+{
     // Собрать переменные левой части (цель) и правой части (источники)
     QList<ExprNode*> vars;
-    collectSources(targetRoot, vars);
-    vars.append(sourceVariables);
-    // Проверить каждую переменную по контексту dims; все ошибки копим, НЕ выходим на первой
+    collectSources(currentAction->targetRoot, vars);
+    vars.append(currentAction->sourceVariables);
+    // Проверить каждую переменную; все ошибки копим, не выходим на первой
     bool hasDimError = false;
     for (ExprNode* node : vars) {
         const QString name = getArrayName(node);
         if (name.isEmpty()) {
             continue;
         }
-        if (!name.isEmpty()) {
-            Error dimError;
-            if (!validateArrayDimension(node, name, dims, currentAction->number, dimError)) {
-                errors.insert(dimError);
-                hasDimError = true;
-            }
+        Error dimError;
+        if (!validateArrayDimension(node, name, dims, currentAction->number, dimError)) {
+            errors.insert(dimError);
+            hasDimError = true;
         }
-
     }
-    // Если у действия есть ошибка размерности - не строим рёбра и не трогаем varTable
-    if (hasDimError) {
-        return;
-    }
+    return hasDimError;
+}
 
-    // Для каждой прочитанной переменной определить зависимость по таблице состояний
+// Построение рёбер зависимости для прочитанных переменных
+void DependencyGraph::buildEdgesForAction(Action* currentAction, const QList<ExprNode*>& sourceVariables, const QMap<QString, Action*>& varTable)
+{
     for (ExprNode* varNode : sourceVariables) {
         Action* dependencyAction = nullptr;
         const DependencyType depType = determineDependency(varNode, varTable, dependencyAction);
-        // Если зависимость есть,добавить ребро от текущего действия к найденному
+        // Если зависимость есть, добавить ребро от текущего действия к найденному
         if (depType != NoDependency && dependencyAction != nullptr) {
             addEdge(currentAction, dependencyAction, depType);
         }
     }
-    // Запомнить, что целевую переменную последним изменило текущее действие
+}
+
+// Обновление таблицы последних изменений переменных
+void DependencyGraph::updateVarTable(Action* currentAction, const QString& targetName, const QList<ExprNode*>& modifiedVariables, QMap<QString, Action*>& varTable)
+{
+    // Целевую переменную последним изменило текущее действие
     varTable[targetName] = currentAction;
-    // Для каждой изменяемой переменной (++/--) обновить запись в таблице на текущее действие
+    // Для каждой изменяемой переменной (++/--) обновить запись на текущее действие
     for (ExprNode* varNode : modifiedVariables) {
         if (varNode) {
             const QString varName = getArrayName(varNode);
@@ -102,8 +114,6 @@ void DependencyGraph::applyAction(Action* currentAction, QMap<QString, Action*>&
             }
         }
     }
-    // Добавить текущее действие в список вершин графа
-    addAction(currentAction);
 }
 
 // Добавление вершины
