@@ -201,5 +201,6 @@ void handleVariableToken(const QString& token, QStack<ExprNode*>& stack,
  * @param[in] token  некорректный токен
  * @return тип ошибки
  */
+ErrorType classifyInvalidToken(const QString& token);
 
 #endif // FUNCTIONS_H
