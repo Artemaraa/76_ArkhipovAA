@@ -32,6 +32,7 @@ private slots:
     void TestDeep5dEqual();
     void TestDeep5dVariableIndex();
     void TestDeep5dDifferentConstant();
+    void TestSameTypeOperators();
 };
 
 #endif // TEST_COMPAREINDICES_H

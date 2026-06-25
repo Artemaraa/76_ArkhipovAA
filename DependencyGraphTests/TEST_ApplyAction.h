@@ -29,6 +29,12 @@ private slots:
     void TestMixedArrayAndScalar();
     void TestSelfArrayAssignment();
     void TestComprehensive();
+
+    void TestApplyActionNullAction();
+    void TestApplyActionEmptyTarget();
+    void TestDimScalarThenArray();
+    void TestDimArrayThenScalar();
+    void TestDimInvalidDimension();
 };
 
 #endif // TEST_APPLYACTION_H

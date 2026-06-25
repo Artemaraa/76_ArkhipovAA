@@ -561,3 +561,31 @@ void TEST_ParseActions::TestBoundaryValues()
     qDeleteAll(actions);
 }
 
+// ============================================================
+// Тест : Превышение лимита количества действий -> TooManyActions
+// ============================================================
+void TEST_ParseActions::TestTooManyActions()
+{
+    QSet<Error> errors;
+    QList<Action*> actions;
+
+    // Сгенерировать MAX_ACTIONS + 1 валидных действий вида "vN = N"
+    QStringList lines;
+    for (int i = 0; i <= MAX_ACTIONS; ++i) {
+        lines.append(QString("v%1 = %2").arg(i).arg(i));
+    }
+
+    parseActions(lines, actions, errors);
+
+    // Должна появиться ошибка превышения лимита
+    bool found = false;
+    for (const Error& e : errors) {
+        if (e.type == TooManyActions) {
+            found = true;
+            break;
+        }
+    }
+    QVERIFY(found);
+
+    qDeleteAll(actions);
+}

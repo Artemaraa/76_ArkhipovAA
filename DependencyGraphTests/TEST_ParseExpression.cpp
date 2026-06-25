@@ -411,3 +411,84 @@ void TEST_ParseExpression::TestComplexIncrementDecrement()
         delete root;
     }
 }
+// ============================================================
+// Тест Пустое выражение -> nullptr
+// ============================================================
+void TEST_ParseExpression::TestEmptyExpression()
+{
+    QSet<Error> errors;
+    QList<ExprNode*> sources;
+    QList<ExprNode*> modified;
+
+    // Пустая строка -> tokens.isEmpty() -> nullptr
+    ExprNode* root = parseExpression("", sources, modified, 1, errors);
+
+    QVERIFY(root == nullptr);
+}
+
+void TEST_ParseExpression::TestVariableNameTooLong()
+{
+    QSet<Error> errors;
+    QList<ExprNode*> sources, modified;
+
+    // Имя длиннее MAX_VAR_LEN
+    QString longName(MAX_VAR_LEN + 1, 'a');
+    ExprNode* root = parseExpression(longName, sources, modified, 1, errors);
+
+    bool found = false;
+    for (const Error& e : errors)
+        if (e.type == VariableNameTooLong) { found = true; break; }
+    QVERIFY(found);
+
+    if (root) delete root;
+}
+
+void TEST_ParseExpression::TestArrayAccessNotEnough()
+{
+    QSet<Error> errors;
+    QList<ExprNode*> sources, modified;
+
+    // "[]" без достаточного числа операндов
+    ExprNode* root = parseExpression("a []", sources, modified, 1, errors);
+
+    bool found = false;
+    for (const Error& e : errors)
+        if (e.type == NotEnoughOperands) { found = true; break; }
+    QVERIFY(found);
+
+    if (root) delete root;
+}
+
+
+void TEST_ParseExpression::TestInvalidNumberFormat()
+{
+    QSet<Error> errors;
+    QList<ExprNode*> sources, modified;
+
+    // "1.5" — похоже на число, но не целое -> InvalidNumberFormat
+    ExprNode* root = parseExpression("1.5", sources, modified, 1, errors);
+
+    bool found = false;
+    for (const Error& e : errors)
+        if (e.type == InvalidNumberFormat) { found = true; break; }
+    QVERIFY(found);
+
+    if (root) delete root;
+}
+
+void TEST_ParseExpression::TestNestingDepthExceeded()
+{
+    QSet<Error> errors;
+    QList<ExprNode*> sources, modified;
+
+    // a[i][j][k][l][m][n] — 6 уровней (> MAX_INDEX_DEPTH = 5)
+    ExprNode* root = parseExpression("a i [] j [] k [] l [] m [] n []",
+                                     sources, modified, 1, errors);
+
+    bool found = false;
+    for (const Error& e : errors)
+        if (e.type == NestingDepthExceeded) { found = true; break; }
+    QVERIFY(found);
+
+    if (root) delete root;
+}

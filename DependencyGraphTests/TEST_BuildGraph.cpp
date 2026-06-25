@@ -423,3 +423,37 @@ void TEST_BuildGraph::TestComprehensive()
 
     qDeleteAll(actions);
 }
+// ============================================================
+// Тест: getOutgoing - действия, зависящие от заданного
+// ============================================================
+void TEST_BuildGraph::TestGetOutgoing()
+{
+    DependencyGraph graph;
+    QMap<QString, Action*> varTable;
+    QMap<QString, int> dims;
+    QSet<Error> errors;
+
+    // a = 5 ; b = a 1 +  (b зависит от a)
+    Action* a1 = new Action(1);
+    a1->targetRoot = new ExprNode(Var, "a");
+    a1->expression = new ExprNode(Number, "5");
+    graph.applyAction(a1, varTable, errors, dims);
+
+    Action* a2 = new Action(2);
+    a2->targetRoot = new ExprNode(Var, "b");
+    ExprNode* aSrc = new ExprNode(Var, "a");
+    ExprNode* one = new ExprNode(Number, "1");
+    ExprNode* plus = new ExprNode(Plus);
+    plus->leftOperand = aSrc;
+    plus->rightOperand = one;
+    a2->expression = plus;
+    a2->sourceVariables.append(aSrc);
+    graph.applyAction(a2, varTable, errors, dims);
+
+    // getOutgoing(a1) должен вернуть a2 (a2 зависит от a1)
+    QList<Action*> outgoing = graph.getOutgoing(a1);
+    QVERIFY(outgoing.contains(a2));
+
+    delete a1;
+    delete a2;
+}

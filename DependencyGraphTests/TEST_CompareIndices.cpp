@@ -508,3 +508,21 @@ void TEST_CompareIndices::TestDeep5dDifferentConstant()
     delete arr2;
 }
 
+// ============================================================
+// Тест 21: Узлы одного типа-оператора (не Var/Number/ArrayAccess)
+// Покрывает завершающую ветку else -> General
+// ============================================================
+void TEST_CompareIndices::TestSameTypeOperators()
+{
+    // Два узла одного типа Plus: типы равны, но это не Var/Number/ArrayAccess
+    ExprNode* node1 = new ExprNode(Plus);
+    ExprNode* node2 = new ExprNode(Plus);
+
+    DependencyType result = compareIndices(node1, node2);
+
+    // Должна сработать завершающая ветка else -> General
+    QCOMPARE((int)result, (int)General);
+
+    delete node1;
+    delete node2;
+}

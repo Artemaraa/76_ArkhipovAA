@@ -29,6 +29,12 @@ private slots:
     void TestComplexExpression();
     void TestComplexWithErrors();
     void TestComplexIncrementDecrement();
+
+    void TestEmptyExpression();
+    void TestVariableNameTooLong();
+    void TestArrayAccessNotEnough();
+    void TestInvalidNumberFormat();
+    void TestNestingDepthExceeded();
 };
 
 #endif // TEST_PARSEEXPRESSION_H

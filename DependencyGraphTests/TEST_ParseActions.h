@@ -35,6 +35,8 @@ private slots:
     void TestComprehensive();
     void TestComprehensiveWithErrors();
     void TestBoundaryValues();
+
+    void TestTooManyActions();
 };
 
 #endif // TEST_PARSEACTIONS_H

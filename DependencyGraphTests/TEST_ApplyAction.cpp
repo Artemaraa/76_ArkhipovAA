@@ -767,3 +767,152 @@ void TEST_ApplyAction::TestComprehensive()
 
     qDeleteAll(actions);
 }
+
+// ============================================================
+    // Тест 18: Пустое действие (nullptr) - ранний выход
+    // ============================================================
+    void TEST_ApplyAction::TestApplyActionNullAction()
+{
+    DependencyGraph graph;
+    QMap<QString, Action*> varTable;
+    QMap<QString, int> dims;
+    QSet<Error> errors;
+
+    // Вызов с nullptr не должен ничего делать и не должен падать
+    graph.applyAction(nullptr, varTable, errors, dims);
+
+    QCOMPARE(errors.size(), 0);
+    QCOMPARE(varTable.size(), 0);
+}
+
+// ============================================================
+// Тест 19: Действие с пустой целью (targetRoot = nullptr) - ранний выход
+// ============================================================
+void TEST_ApplyAction::TestApplyActionEmptyTarget()
+{
+    DependencyGraph graph;
+    QMap<QString, Action*> varTable;
+    QMap<QString, int> dims;
+    QSet<Error> errors;
+
+    // targetRoot = nullptr -> getArrayName вернёт пустую строку -> ранний выход
+    Action* action = new Action(1);
+    action->targetRoot = nullptr;
+    action->expression = new ExprNode(Number, "5");
+
+    graph.applyAction(action, varTable, errors, dims);
+
+    // Ранний выход: переменная не добавлена в таблицу
+    QCOMPARE(varTable.size(), 0);
+
+    delete action;
+}
+
+
+// ScalarWithIndex: была скаляр, стала массив
+void TEST_ApplyAction::TestDimScalarThenArray()
+{
+    DependencyGraph graph;
+    QMap<QString, Action*> varTable;
+    QMap<QString, int> dims;
+    QSet<Error> errors;
+
+    // a = 5 (скаляр)
+    Action* a1 = new Action(1);
+    a1->targetRoot = new ExprNode(Var, "a");
+    a1->expression = new ExprNode(Number, "5");
+    graph.applyAction(a1, varTable, errors, dims);
+
+    // b = a 2 [] (a как массив)
+    Action* a2 = new Action(2);
+    a2->targetRoot = new ExprNode(Var, "b");
+    ExprNode* aArr = new ExprNode(ArrayAccess);
+    aArr->leftOperand = new ExprNode(Var, "a");
+    aArr->rightOperand = new ExprNode(Number, "2");
+    a2->expression = aArr;
+    a2->sourceVariables.append(aArr);
+    graph.applyAction(a2, varTable, errors, dims);
+
+    bool found = false;
+    for (const Error& e : errors)
+        if (e.type == ScalarWithIndex) { found = true; break; }
+    QVERIFY(found);
+
+    delete a1; delete a2;
+}
+
+
+// была массив, стала скаляр -> ArrayWithoutIndex
+void TEST_ApplyAction::TestDimArrayThenScalar()
+{
+    DependencyGraph graph;
+    QMap<QString, Action*> varTable;
+    QMap<QString, int> dims;
+    QSet<Error> errors;
+
+    // a 2 [] = 5 (a как массив, 1 измерение)
+    Action* a1 = new Action(1);
+    ExprNode* arr = new ExprNode(ArrayAccess);
+    arr->leftOperand = new ExprNode(Var, "a");
+    arr->rightOperand = new ExprNode(Number, "2");
+    a1->targetRoot = arr;
+    a1->expression = new ExprNode(Number, "5");
+    graph.applyAction(a1, varTable, errors, dims);
+
+    // b = a 1 + (a как скаляр)
+    Action* a2 = new Action(2);
+    a2->targetRoot = new ExprNode(Var, "b");
+    ExprNode* aSrc = new ExprNode(Var, "a");
+    ExprNode* one = new ExprNode(Number, "1");
+    ExprNode* plus = new ExprNode(Plus);
+    plus->leftOperand = aSrc;
+    plus->rightOperand = one;
+    a2->expression = plus;
+    a2->sourceVariables.append(aSrc);
+    graph.applyAction(a2, varTable, errors, dims);
+
+    bool found = false;
+    for (const Error& e : errors)
+        if (e.type == ArrayWithoutIndex) { found = true; break; }
+    QVERIFY(found);
+
+    delete a1; delete a2;
+}
+
+// разные ненулевые размерности (1 и 2) -> InvalidArrayDimension
+void TEST_ApplyAction::TestDimInvalidDimension()
+{
+    DependencyGraph graph;
+    QMap<QString, Action*> varTable;
+    QMap<QString, int> dims;
+    QSet<Error> errors;
+
+    // a 2 [] = 5 (a, 1 измерение)
+    Action* a1 = new Action(1);
+    ExprNode* arr1 = new ExprNode(ArrayAccess);
+    arr1->leftOperand = new ExprNode(Var, "a");
+    arr1->rightOperand = new ExprNode(Number, "2");
+    a1->targetRoot = arr1;
+    a1->expression = new ExprNode(Number, "5");
+    graph.applyAction(a1, varTable, errors, dims);
+
+    // b = a i [] j [] (a, 2 измерения)
+    Action* a2 = new Action(2);
+    a2->targetRoot = new ExprNode(Var, "b");
+    ExprNode* inner = new ExprNode(ArrayAccess);
+    inner->leftOperand = new ExprNode(Var, "a");
+    inner->rightOperand = new ExprNode(Var, "i");
+    ExprNode* outer = new ExprNode(ArrayAccess);
+    outer->leftOperand = inner;
+    outer->rightOperand = new ExprNode(Var, "j");
+    a2->expression = outer;
+    a2->sourceVariables.append(outer);
+    graph.applyAction(a2, varTable, errors, dims);
+
+    bool found = false;
+    for (const Error& e : errors)
+        if (e.type == InvalidArrayDimension) { found = true; break; }
+    QVERIFY(found);
+
+    delete a1; delete a2;
+}

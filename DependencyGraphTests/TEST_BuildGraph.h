@@ -24,6 +24,8 @@ private slots:
     void TestEmptyInputFile();
     void TestMixedArraysIncrementRedefinition();
     void TestComprehensive();
+
+    void TestGetOutgoing();
 };
 
 #endif // TEST_BUILDGRAPH_H
