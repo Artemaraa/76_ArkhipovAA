@@ -167,4 +167,39 @@ DependencyType compareIndices(ExprNode* node1, ExprNode* node2);
  */
 bool readFile(const QString& filePath, QStringList& fileContent, QSet<Error>& errors);
 
+/**
+ * @brief Проверяет, является ли токен бинарным оператором (+ - * /)
+ * @param[in] token  проверяемый токен
+ * @return true - бинарный оператор, иначе false
+ */
+bool isBinaryOperator(const QString& token);
+
+/**
+ * @brief Обрабатывает токен-число: создаёт узел-число или фиксирует выход за диапазон
+ * @param[in]     token       токен-число
+ * @param[in,out] stack       стек узлов выражения
+ * @param[in]     lineNumber  номер строки
+ * @param[in]     tokenIndex  позиция токена в строке
+ * @param[in,out] errors      множество ошибок
+ */
+void handleNumberToken(const QString& token, QStack<ExprNode*>& stack,
+                       int lineNumber, int tokenIndex, QSet<Error>& errors);
+
+/**
+ * @brief Обрабатывает токен-переменную: создаёт узел-переменную или фиксирует слишком длинное имя
+ * @param[in]     token       токен-имя переменной
+ * @param[in,out] stack       стек узлов выражения
+ * @param[in]     lineNumber  номер строки
+ * @param[in]     tokenIndex  позиция токена в строке
+ * @param[in,out] errors      множество ошибок
+ */
+void handleVariableToken(const QString& token, QStack<ExprNode*>& stack,
+                         int lineNumber, int tokenIndex, QSet<Error>& errors);
+
+/**
+ * @brief Определяет точный тип ошибки для некорректного токена
+ * @param[in] token  некорректный токен
+ * @return тип ошибки
+ */
+
 #endif // FUNCTIONS_H
